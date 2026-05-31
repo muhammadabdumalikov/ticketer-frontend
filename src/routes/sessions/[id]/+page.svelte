@@ -14,10 +14,13 @@
 
 	let session = $state<ApiSession | null>(null);
 	let ticket = $state<ApiTicketDetail | null>(null);
+	let studentTicket = $state<ApiTicketDetail | null>(null);
+	let loadingStudentTicket = $state(false);
 	let roster = $state<ApiRoomMember[]>([]);
 	let loadError = $state('');
 	let busy = $state(false);
 	let sock: Socket | null = null;
+	const ticketCache = new Map<string, ApiTicketDetail>();
 
 	// Active proctoring state
 	let activeMemberId = $state<string | null>(null);
@@ -29,10 +32,11 @@
 	let toast = $state<{ name: string; score: number } | null>(null);
 	let copied = $state(false);
 
-	let verbalQuestions = $derived(ticket?.questions.filter((q) => q.type === 'verbal') ?? []);
+	let activeTicket = $derived(studentTicket ?? ticket);
+	let verbalQuestions = $derived(activeTicket?.questions.filter((q) => q.type === 'verbal') ?? []);
 	let activeMember = $derived(roster.find((m) => m.id === activeMemberId) ?? null);
 	let activeQuestion = $derived<ApiQuestion | null>(
-		ticket?.questions.find((q) => q.id === activeQuestionId) ?? null
+		activeTicket?.questions.find((q) => q.id === activeQuestionId) ?? null
 	);
 	let copyLink = $derived(() => {
 		if (typeof window === 'undefined') return '';
@@ -54,6 +58,7 @@
 			session = s;
 			roster = r;
 			ticket = await ticketsApi.get(s.ticketId);
+			ticketCache.set(ticket.id, ticket);
 			activeQuestionId = ticket.questions.find((q) => q.type === 'verbal')?.id ?? null;
 			openSocket();
 		} catch (err) {
@@ -111,13 +116,45 @@
 		}
 	}
 
-	function pickMember(m: ApiRoomMember) {
+	async function pickMember(m: ApiRoomMember) {
 		activeMemberId = m.id;
 		verbalStage = 'idle';
 		elapsed = 0;
 		score = 0;
 		notes = '';
+
+		const targetId = m.assignedTicketId ?? session?.ticketId ?? null;
+		if (!targetId) {
+			studentTicket = null;
+			return;
+		}
+		if (studentTicket?.id === targetId) return;
+
+		const cached = ticketCache.get(targetId);
+		if (cached) {
+			studentTicket = cached;
+			activeQuestionId = cached.questions.find((q) => q.type === 'verbal')?.id ?? null;
+			return;
+		}
+
+		loadingStudentTicket = true;
+		try {
+			const fetched = await ticketsApi.get(targetId);
+			// guard against stale fetches if the teacher clicked another student meanwhile
+			if (activeMemberId !== m.id) return;
+			ticketCache.set(fetched.id, fetched);
+			studentTicket = fetched;
+			activeQuestionId = fetched.questions.find((q) => q.type === 'verbal')?.id ?? null;
+		} catch (err) {
+			alert(`Не удалось загрузить билет студента: ${(err as Error).message}`);
+		} finally {
+			loadingStudentTicket = false;
+		}
 	}
+
+	$effect(() => {
+		if (activeMemberId === null) studentTicket = null;
+	});
 
 	async function verbalStart() {
 		if (!activeMemberId || !activeQuestionId) return;
@@ -162,8 +199,12 @@
 				// move to next non-active member
 				const idx = roster.findIndex((m) => m.id === activeMemberId);
 				const nextMember = roster[(idx + 1) % roster.length];
-				activeMemberId = nextMember?.id ?? null;
-				reset();
+				if (nextMember) {
+					void pickMember(nextMember);
+				} else {
+					activeMemberId = null;
+					reset();
+				}
 			}, 1500);
 		} catch (err) {
 			alert(`grade failed: ${(err as Error).message}`);
@@ -344,9 +385,16 @@
 							{#if activeQuestion && activeQuestion.type === 'verbal'}
 								<div class="ticket-pill">Устный · до {Math.round(activeQuestion.time / 60)} мин</div>
 							{/if}
+							{#if activeMember.assignedTicketId && studentTicket && studentTicket.id === activeMember.assignedTicketId}
+								<div class="ticket-pill">Билет студента · {studentTicket.title}</div>
+							{/if}
 						</div>
 
-						{#if activeQuestion && activeQuestion.type === 'verbal'}
+						{#if loadingStudentTicket}
+							<div class="question-block">
+								<h2>Загружаем билет студента…</h2>
+							</div>
+						{:else if activeQuestion && activeQuestion.type === 'verbal'}
 							<div class="question-block">
 								<h2>{activeQuestion.text}</h2>
 								<div class="qcap">Запустите таймер, когда студент начнёт отвечать.</div>
