@@ -28,7 +28,12 @@
 		sock.on('session:start', () => {
 			onStarted();
 		});
+		// Fallback: if the session:start broadcast is ever missed (socket drop,
+		// reconnect, late join), poll our own state so the page still flips to the
+		// ticket on its own — this is the "auto-refresh" the UI promises.
+		const poll = setInterval(() => onStarted(), 3000);
 		return () => {
+			clearInterval(poll);
 			sock?.disconnect();
 		};
 	});

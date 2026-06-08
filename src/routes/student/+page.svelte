@@ -68,7 +68,7 @@
 
 	async function checkAlreadyStarted() {
 		try {
-			const me = await sessionsApi.me(sessionId);
+			const me = await sessionsApi.me(sessionId, sessionToken);
 			if (me.assignedTicket) {
 				assignedTicket = me.assignedTicket;
 				view = 'taking';

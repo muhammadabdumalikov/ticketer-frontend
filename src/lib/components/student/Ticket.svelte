@@ -84,7 +84,7 @@
 			item.numericValue = numericAnswers[question.id];
 		}
 		try {
-			await sessionsApi.submitAnswers(sessionId, [item]);
+			await sessionsApi.submitAnswers(sessionId, [item], sessionToken);
 		} catch (err) {
 			console.error('submit answer failed', err);
 		}

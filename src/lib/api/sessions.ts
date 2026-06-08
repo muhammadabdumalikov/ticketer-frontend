@@ -95,11 +95,16 @@ export const sessionsApi = {
 			method: 'POST',
 			body: JSON.stringify(body)
 		}),
-	me: (id: string) => request<ApiMyState>(`/sessions/${id}/me`),
-	submitAnswers: (id: string, answers: AnswerItem[]) =>
+	me: (id: string, sessionToken?: string) =>
+		request<ApiMyState>(
+			`/sessions/${id}/me`,
+			sessionToken ? { headers: { 'x-session-token': sessionToken } } : {}
+		),
+	submitAnswers: (id: string, answers: AnswerItem[], sessionToken?: string) =>
 		request<{ ok: true }>(`/sessions/${id}/answers`, {
 			method: 'POST',
-			body: JSON.stringify({ answers })
+			body: JSON.stringify({ answers }),
+			...(sessionToken ? { headers: { 'x-session-token': sessionToken } } : {})
 		}),
 
 	// Proctor
