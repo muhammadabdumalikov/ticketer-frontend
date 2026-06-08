@@ -3,6 +3,7 @@
 	import BrandPane from '$lib/components/login/BrandPane.svelte';
 	import FormPane from '$lib/components/login/FormPane.svelte';
 	import { onMount } from 'svelte';
+	import { _ } from 'svelte-i18n';
 
 	onMount(() => {
 		document.body.classList.add('page-login');
@@ -10,7 +11,7 @@
 	});
 </script>
 
-<svelte:head><title>Ticketer — Вход</title></svelte:head>
+<svelte:head><title>{$_('titles.login')}</title></svelte:head>
 
 <div class="stage">
 	<div class="frame split">

@@ -4,6 +4,7 @@
 	import { connectAsStudent } from '$lib/socket';
 	import { sessionsApi, type ApiRoomMember, type ApiSession } from '$lib/api/sessions';
 	import { deriveSig } from '$lib/api/adapters';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		sessionId: string;
@@ -42,7 +43,7 @@
 					...roster,
 					{
 						id: memberId,
-						name: 'Вы',
+						name: $_('waiting.you'),
 						groupName: '',
 						studentNumber: null,
 						online: true,
@@ -55,13 +56,13 @@
 
 <div class="top">
 	<div class="title">
-		{session?.ticket?.subjectName ?? 'Экзамен'}
-		<span class="info" title="Информация">i</span>
+		{session?.ticket?.subjectName ?? $_('waiting.subjectFallback')}
+		<span class="info" title={$_('waiting.info')}>i</span>
 	</div>
 	<div class="spacer"></div>
 	<div class="pill-time">
 		<span style="width: 8px; height: 8px; border-radius: 999px; background: var(--accent); display: inline-block;"></span>
-		Ожидание
+		{$_('waiting.pill')}
 	</div>
 </div>
 
@@ -69,49 +70,47 @@
 	<div class="wait-left">
 		<div class="wait-eyebrow">
 			<span class="pulse"></span>
-			ЭКЗАМЕН ВОТ-ВОТ НАЧНЁТСЯ
+			{$_('waiting.eyebrow')}
 		</div>
 
 		<h1 class="wait-headline">
-			Ожидайте начала экзамена. <em>Преподаватель скоро запустит сессию.</em>
+			{$_('waiting.headline')} <em>{$_('waiting.headlineEm')}</em>
 		</h1>
 
 		<p class="wait-sub">
-			Когда все студенты будут в комнате, преподаватель нажмёт «Начать», и каждому
-			автоматически выпадет билет. Не закрывайте эту вкладку.
+			{$_('waiting.subtitle')}
 		</p>
 
 		<div class="wait-meta">
 			<div class="it">
-				<div class="k">Предмет</div>
+				<div class="k">{$_('waiting.metaSubject')}</div>
 				<div class="v">{session?.ticket?.subjectName ?? '—'}</div>
 			</div>
 			<div class="it">
-				<div class="k">Код</div>
+				<div class="k">{$_('waiting.metaCode')}</div>
 				<div class="v">{session?.ticket?.subjectCode ?? '—'}</div>
 			</div>
 			<div class="it">
-				<div class="k">Билет</div>
+				<div class="k">{$_('waiting.metaTicket')}</div>
 				<div class="v">{session?.ticket?.title ?? '—'}</div>
 			</div>
 			<div class="it">
-				<div class="k">Длительность</div>
-				<div class="v">{session?.ticket?.durationMin ?? '—'}<small> мин</small></div>
+				<div class="k">{$_('waiting.metaDuration')}</div>
+				<div class="v">{session?.ticket?.durationMin ?? '—'}<small> {$_('units.min')}</small></div>
 			</div>
 		</div>
 
 		<div class="wait-hint">
 			<Icon name="shield" />
 			<div>
-				<b>Не покидайте страницу.</b> Если вы случайно закроете вкладку,
-				откройте ту же ссылку — вы вернётесь в комнату.
+				<b>{$_('waiting.hintTitle')}</b> {$_('waiting.hintText')}
 			</div>
 		</div>
 	</div>
 
 	<div class="wait-right">
 		<div class="wait-right-head">
-			<h3>В комнате</h3>
+			<h3>{$_('waiting.inRoom')}</h3>
 			<span class="count"><b>{displayRoster.length}</b></span>
 		</div>
 
@@ -122,7 +121,7 @@
 					<div class="av {isMe ? 'me' : ''}">{deriveSig(s.name)}</div>
 					<span class="name">{s.name}</span>
 					{#if isMe}
-						<span class="me-tag">ВЫ</span>
+						<span class="me-tag">{$_('waiting.meTag')}</span>
 					{:else}
 						<span class="led"></span>
 					{/if}
@@ -132,7 +131,7 @@
 
 		<div style="display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 13px; padding-top: 4px;">
 			<Icon name="bell" />
-			<span>Когда экзамен начнётся, страница обновится автоматически.</span>
+			<span>{$_('waiting.autoRefresh')}</span>
 		</div>
 	</div>
 </div>

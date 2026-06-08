@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import Icon from '$lib/components/Icon.svelte';
+	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
 	import { auth, type PublicUser } from '$lib/stores/auth.svelte';
 
 	let open = $state(false);
@@ -10,7 +12,7 @@
 	let user = $derived<PublicUser | null>(auth.user);
 
 	let initials = $derived(getInitials(user?.name));
-	let roleLabel = $derived(formatRole(user?.role));
+	let roleLabel = $derived(formatRole($_, user?.role));
 
 	function getInitials(name: string | null | undefined): string {
 		if (!name) return '—';
@@ -21,15 +23,12 @@
 		return (parts[0][0] + parts[1][0]).toUpperCase();
 	}
 
-	function formatRole(role: string | null | undefined): string {
-		switch (role) {
-			case 'teacher':
-				return 'Преподаватель';
-			case 'admin':
-				return 'Администратор';
-			default:
-				return role ? role.charAt(0).toUpperCase() + role.slice(1) : '';
-		}
+	function formatRole(t: typeof $_, role: string | null | undefined): string {
+		if (!role) return '';
+		const key = `roles.${role}`;
+		const label = t(key);
+		if (label !== key) return label;
+		return role.charAt(0).toUpperCase() + role.slice(1);
 	}
 
 	function toggle() {
@@ -73,7 +72,7 @@
 			<div class="um-head">
 				<div class="um-avatar">{initials}</div>
 				<div class="um-id">
-					<div class="um-name">{user?.name ?? 'Без имени'}</div>
+					<div class="um-name">{user?.name ?? $_('userMenu.noName')}</div>
 					<div class="um-email">{user?.email ?? ''}</div>
 				</div>
 			</div>
@@ -86,6 +85,13 @@
 
 			<div class="um-sep"></div>
 
+			<div class="um-lang">
+				<span class="um-lang-label">{$_('userMenu.language')}</span>
+				<LanguageSwitcher compact />
+			</div>
+
+			<div class="um-sep"></div>
+
 			{#if !confirming}
 				<button
 					type="button"
@@ -94,17 +100,17 @@
 					role="menuitem"
 				>
 					<span class="um-item-ic"><Icon name="exit" /></span>
-					<span>Выйти из аккаунта</span>
+					<span>{$_('userMenu.logout')}</span>
 				</button>
 			{:else}
 				<div class="um-confirm">
-					<div class="um-confirm-text">Выйти из аккаунта?</div>
+					<div class="um-confirm-text">{$_('userMenu.logoutConfirm')}</div>
 					<div class="um-confirm-row">
 						<button type="button" class="um-btn um-btn-ghost" onclick={() => (confirming = false)}>
-							Отмена
+							{$_('common.cancel')}
 						</button>
 						<button type="button" class="um-btn um-btn-danger" onclick={handleLogout}>
-							Выйти
+							{$_('userMenu.logoutShort')}
 						</button>
 					</div>
 				</div>
@@ -121,9 +127,24 @@
 	>
 		<div class="avatar">{initials}</div>
 		<div class="who">
-			<div class="name">{user?.name ?? 'Гость'}</div>
+			<div class="name">{user?.name ?? $_('userMenu.guest')}</div>
 			<div class="role">{roleLabel || user?.department || ''}</div>
 		</div>
 		<span class="more"><Icon name="more" /></span>
 	</button>
 </div>
+
+<style>
+	.um-lang {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 6px 2px;
+	}
+	.um-lang-label {
+		font-size: 0.82rem;
+		font-weight: 500;
+		opacity: 0.75;
+	}
+</style>

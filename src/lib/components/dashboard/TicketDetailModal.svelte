@@ -3,6 +3,8 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import { examsApi, type ApiExamDetail } from '$lib/api/exams';
 	import type { ApiQuestion } from '$lib/api/tickets';
+	import { _ } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 
 	interface Props {
 		open: boolean;
@@ -46,13 +48,13 @@
 		collapsed = { ...collapsed, [ticketId]: !collapsed[ticketId] };
 	}
 
-	const TYPE_LABEL: Record<ApiQuestion['type'], string> = {
-		single: 'Один ответ',
-		multi: 'Несколько',
-		text: 'Текст',
-		numeric: 'Число',
-		verbal: 'Устный'
-	};
+	let TYPE_LABEL = $derived<Record<ApiQuestion['type'], string>>({
+		single: $_('ticketDetail.type.single'),
+		multi: $_('ticketDetail.type.multi'),
+		text: $_('ticketDetail.type.text'),
+		numeric: $_('ticketDetail.type.numeric'),
+		verbal: $_('ticketDetail.type.verbal')
+	});
 
 	function pillKind(status: string): string {
 		if (status === 'Опубликован') return 'green';
@@ -62,10 +64,11 @@
 
 	function formatTime(seconds: number): string {
 		if (!seconds) return '—';
-		if (seconds < 60) return `${seconds} сек`;
+		const t = get(_);
+		if (seconds < 60) return `${seconds} ${t('units.sec')}`;
 		const m = Math.floor(seconds / 60);
 		const s = seconds % 60;
-		return s ? `${m} мин ${s} сек` : `${m} мин`;
+		return s ? `${m} ${t('units.min')} ${s} ${t('units.sec')}` : `${m} ${t('units.min')}`;
 	}
 
 	let totalQuestions = $derived(
@@ -82,24 +85,24 @@
 <Modal {open} {onClose} width={680}>
 	<div class="modal-form">
 		<div class="modal-head">
-			<div class="modal-eyebrow">Экзамен</div>
+			<div class="modal-eyebrow">{$_('ticketDetail.eyebrow')}</div>
 			{#if loading}
-				<h3>Загружаем…</h3>
+				<h3>{$_('common.loading')}</h3>
 			{:else if loadError}
-				<h3>Не удалось загрузить</h3>
+				<h3>{$_('ticketDetail.loadError')}</h3>
 				<p>{loadError}</p>
 			{:else if detail}
 				<h3>{detail.title}</h3>
 				<div class="td-meta">
 					<span class="pill {pillKind(detail.status)}">{detail.status.toUpperCase()}</span>
 					<span class="td-dot">·</span>
-					<span>{detail.durationMin} мин</span>
+					<span>{detail.durationMin} {$_('units.min')}</span>
 					<span class="td-dot">·</span>
-					<span>{detail.tickets.length} бил.</span>
+					<span>{detail.tickets.length} {$_('units.ticketsAbbr')}</span>
 					<span class="td-dot">·</span>
-					<span>{totalQuestions} вопр.</span>
+					<span>{totalQuestions} {$_('units.questionsAbbr')}</span>
 					<span class="td-dot">·</span>
-					<span>{totalPoints} баллов</span>
+					<span>{$_('ticketDetail.pointsCount', { values: { n: totalPoints } })}</span>
 				</div>
 				{#if detail.description}
 					<p class="td-desc">{detail.description}</p>
@@ -124,7 +127,7 @@
 							</span>
 							<span class="td-ticket-title">{ticket.title}</span>
 							<span class="td-ticket-meta">
-								{ticket.questions.length} вопр. · {ticketPoints} баллов
+								{ticket.questions.length} {$_('units.questionsAbbr')} · {$_('ticketDetail.pointsCount', { values: { n: ticketPoints } })}
 							</span>
 						</button>
 
@@ -141,7 +144,7 @@
 										<Icon name="clock" /> {formatTime(q.time)}
 									</span>
 								</div>
-								<div class="td-q-text">{q.text || 'Без текста'}</div>
+								<div class="td-q-text">{q.text || $_('ticketDetail.noText')}</div>
 								{#if (q.type === 'single' || q.type === 'multi') && q.answers}
 									<ul class="td-q-answers">
 										{#each q.answers as a, ai (ai)}
@@ -157,21 +160,21 @@
 									</ul>
 								{/if}
 								{#if q.type === 'text' && q.expected !== undefined}
-									<div class="td-q-expected"><b>Ожидается:</b> {q.expected}</div>
+									<div class="td-q-expected"><b>{$_('ticketDetail.expected')}</b> {q.expected}</div>
 								{/if}
 								{#if q.type === 'numeric' && q.expected !== undefined}
 									<div class="td-q-expected">
-										<b>Ожидается:</b> {q.expected}{q.tolerance ? ` ± ${q.tolerance}` : ''}
+										<b>{$_('ticketDetail.expected')}</b> {q.expected}{q.tolerance ? ` ± ${q.tolerance}` : ''}
 									</div>
 								{/if}
 								{#if q.type === 'verbal' && q.rubric}
-									<div class="td-q-expected"><b>Рубрика:</b> {q.rubric}</div>
+									<div class="td-q-expected"><b>{$_('ticketDetail.rubric')}</b> {q.rubric}</div>
 								{/if}
 							</div>
 						{/each}
 						{#if ticket.questions.length === 0}
 							<div style="color: var(--muted); font-size: 13.5px; padding: 8px 4px;">
-								В этом билете пока нет вопросов.
+								{$_('ticketDetail.emptyQuestions')}
 							</div>
 						{/if}
 						{/if}
@@ -179,14 +182,14 @@
 				{/each}
 				{#if detail.tickets.length === 0}
 					<div style="color: var(--muted); font-size: 13.5px; text-align: center; padding: 20px;">
-						У этого экзамена пока нет билетов.
+						{$_('ticketDetail.emptyTickets')}
 					</div>
 				{/if}
 			</div>
 		{/if}
 
 		<div class="modal-foot">
-			<button type="button" class="btn btn-primary" onclick={onClose}>Закрыть</button>
+			<button type="button" class="btn btn-primary" onclick={onClose}>{$_('common.close')}</button>
 		</div>
 	</div>
 </Modal>

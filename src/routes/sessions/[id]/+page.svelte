@@ -9,6 +9,8 @@
 	import { ticketsApi, type ApiQuestion, type ApiTicketDetail } from '$lib/api/tickets';
 	import { connectAsTeacher } from '$lib/socket';
 	import { deriveSig, formatTime } from '$lib/api/adapters';
+	import { _, locale } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 
 	let id = $derived($page.params.id ?? '');
 
@@ -104,7 +106,7 @@
 	}
 
 	async function end() {
-		if (!confirm('Завершить экзамен для всех студентов?')) return;
+		if (!confirm(get(_)('session.confirmEnd'))) return;
 		busy = true;
 		try {
 			const updated = await sessionsApi.end(id);
@@ -146,7 +148,7 @@
 			studentTicket = fetched;
 			activeQuestionId = fetched.questions.find((q) => q.type === 'verbal')?.id ?? null;
 		} catch (err) {
-			alert(`Не удалось загрузить билет студента: ${(err as Error).message}`);
+			alert(`${get(_)('session.loadStudentTicketFailed')}: ${(err as Error).message}`);
 		} finally {
 			loadingStudentTicket = false;
 		}
@@ -217,7 +219,7 @@
 			copied = true;
 			setTimeout(() => (copied = false), 1500);
 		} catch {
-			prompt('Скопируйте ссылку:', copyLink());
+			prompt(get(_)('session.copyLinkPrompt'), copyLink());
 		}
 	}
 
@@ -226,7 +228,7 @@
 	);
 </script>
 
-<svelte:head><title>Ticketer — Сессия</title></svelte:head>
+<svelte:head><title>{$_('titles.session')}</title></svelte:head>
 
 <div class="stage">
 	<div class="frame">
@@ -234,13 +236,13 @@
 			<div class="crumbs">
 				<button
 					class="icon-btn"
-					title="Назад"
+					title={$_('common.back')}
 					onclick={() => goto('/dashboard')}
 					style="border: 0; background: transparent; cursor: pointer;"
 				>
 					<Icon name="back" />
 				</button>
-				<span>Сессия</span>
+				<span>{$_('session.crumb')}</span>
 				<span class="sep">/</span>
 				<b>{session?.ticket?.subjectName ?? '…'}</b>
 				<span class="sep">/</span>
@@ -250,30 +252,30 @@
 			{#if session?.status === 'live'}
 				<div class="session-pill">
 					<span class="led"></span>
-					СЕССИЯ АКТИВНА
+					{$_('session.statusLive')}
 				</div>
 			{:else if session?.status === 'scheduled'}
 				<div class="session-pill" style="background: var(--field); color: var(--ink-3);">
 					<span class="led" style="background: var(--muted-2); box-shadow: none;"></span>
-					ОЖИДАНИЕ
+					{$_('session.statusScheduled')}
 				</div>
 			{:else if session?.status === 'finished'}
 				<div class="session-pill" style="background: var(--field); color: var(--muted);">
-					ЗАВЕРШЕНА
+					{$_('session.statusFinished')}
 				</div>
 			{/if}
 
-			<button class="icon-btn" title={copied ? 'Скопировано!' : 'Скопировать ссылку для студентов'} onclick={copyJoinLink} style="border:0; cursor: pointer;">
+			<button class="icon-btn" title={copied ? $_('session.copied') : $_('session.copyLink')} onclick={copyJoinLink} style="border:0; cursor: pointer;">
 				<Icon name={copied ? 'check' : 'copy'} />
 			</button>
 
 			{#if session?.status === 'scheduled'}
 				<button class="big-btn start" style="min-width: auto; padding: 10px 18px; font-size: 14px;" onclick={start} disabled={busy}>
-					<Icon name="play" /> Начать
+					<Icon name="play" /> {$_('session.start')}
 				</button>
 			{:else if session?.status === 'live'}
 				<button class="big-btn stop" style="min-width: auto; padding: 10px 18px; font-size: 14px;" onclick={end} disabled={busy}>
-					Завершить
+					{$_('session.end')}
 				</button>
 			{/if}
 		</div>
@@ -281,14 +283,14 @@
 		{#if loadError}
 			<div class="center">
 				<div class="question-block">
-					<h2>Не удалось загрузить сессию</h2>
+					<h2>{$_('session.loadFailed')}</h2>
 					<p style="color: var(--accent)">{loadError}</p>
 				</div>
 			</div>
 		{:else if session && ticket}
 			<div class="body">
 				<aside class="roster">
-					<h3>В комнате <span class="count">{roster.length}</span></h3>
+					<h3>{$_('session.inRoom')} <span class="count">{roster.length}</span></h3>
 					<div class="roster-list">
 						{#each roster as r (r.id)}
 							<div
@@ -306,7 +308,7 @@
 						{/each}
 						{#if roster.length === 0}
 							<div style="color: var(--muted); padding: 20px 12px; text-align: center; font-size: 13px;">
-								Никто ещё не подключился. Поделитесь ссылкой на присоединение.
+								{$_('session.rosterEmpty')}
 							</div>
 						{/if}
 					</div>
@@ -315,58 +317,58 @@
 				<section class="center">
 					{#if !activeMember}
 						<div class="question-block">
-							<h2>{session?.ticket?.subjectName ?? 'Экзамен'}</h2>
+							<h2>{session?.ticket?.subjectName ?? $_('session.subjectFallback')}</h2>
 							<div class="qcap">
 								{#if session?.status === 'scheduled'}
-									Сессия запланирована. Поделитесь ссылкой и нажмите «Начать», когда студенты будут в комнате.
+									{$_('session.capScheduled')}
 								{:else if session?.status === 'live' && verbalQuestions.length > 0}
-									Выберите студента слева, чтобы начать устный опрос.
+									{$_('session.capLiveVerbal')}
 								{:else if session?.status === 'live'}
-									Все вопросы — автоматическая проверка. Никаких устных ответов.
+									{$_('session.capLiveAuto')}
 								{:else}
-									Сессия завершена. Баллы за тестовые вопросы посчитаны автоматически.
+									{$_('session.capFinished')}
 								{/if}
 							</div>
 						</div>
 
 						<div class="sess-stats">
 							<div class="sess-stat">
-								<div class="k">В комнате</div>
+								<div class="k">{$_('session.inRoom')}</div>
 								<div class="v">{roster.length}</div>
-								<div class="s">{roster.filter((r) => r.assignedTicketId).length} с билетом</div>
+								<div class="s">{$_('session.withTicket', { values: { n: roster.filter((r) => r.assignedTicketId).length } })}</div>
 							</div>
 							<div class="sess-stat">
-								<div class="k">Билет</div>
+								<div class="k">{$_('session.ticket')}</div>
 								<div class="v">{ticket.title}</div>
-								<div class="s">{ticket.questions.length} вопр.</div>
+								<div class="s">{$_('units.questionsAbbr', { values: { n: ticket.questions.length } })}</div>
 							</div>
 							<div class="sess-stat">
-								<div class="k">Длительность</div>
-								<div class="v">{session?.ticket?.durationMin ?? '—'}<small> мин</small></div>
+								<div class="k">{$_('session.duration')}</div>
+								<div class="v">{session?.ticket?.durationMin ?? '—'}<small> {$_('units.min')}</small></div>
 								<div class="s">
 									{#if session?.startedAt}
-										Начато {new Date(session.startedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+										{$_('session.startedAt', { values: { time: new Intl.DateTimeFormat($locale ?? 'ru', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.startedAt)) } })}
 									{:else}
-										Ещё не начато
+										{$_('session.notStarted')}
 									{/if}
 								</div>
 							</div>
 							<div class="sess-stat">
-								<div class="k">Устные</div>
+								<div class="k">{$_('session.verbal')}</div>
 								<div class="v">{verbalQuestions.length}</div>
-								<div class="s">из {ticket.questions.length} вопросов</div>
+								<div class="s">{$_('session.ofQuestions', { values: { n: ticket.questions.length } })}</div>
 							</div>
 						</div>
 
 						{#if session?.status === 'live' && roster.length > 0}
 							<div class="sess-hint">
 								<Icon name="user" />
-								<span>Кликните по студенту в списке слева — там вы сможете провести устный опрос и поставить оценку.</span>
+								<span>{$_('session.hintPickStudent')}</span>
 							</div>
 						{:else if session?.status === 'scheduled' && roster.length === 0}
 							<div class="sess-hint">
 								<Icon name="copy" />
-								<span>Нажмите на иконку <Icon name="copy" size={14} /> вверху, чтобы скопировать ссылку для студентов.</span>
+								<span>{$_('session.hintCopyLinkPre')} <Icon name="copy" size={14} /> {$_('session.hintCopyLinkPost')}</span>
 							</div>
 						{/if}
 					{:else}
@@ -378,61 +380,61 @@
 									<span><b>{activeMember.groupName}</b></span>
 									{#if activeMember.studentNumber}
 										<span>·</span>
-										<span>№ зачётки <b>{activeMember.studentNumber}</b></span>
+										<span>{$_('session.studentNumberLabel')} <b>{activeMember.studentNumber}</b></span>
 									{/if}
 								</div>
 							</div>
 							{#if activeQuestion && activeQuestion.type === 'verbal'}
-								<div class="ticket-pill">Устный · до {Math.round(activeQuestion.time / 60)} мин</div>
+								<div class="ticket-pill">{$_('session.verbalPill', { values: { n: Math.round(activeQuestion.time / 60) } })}</div>
 							{/if}
 							{#if activeMember.assignedTicketId && studentTicket && studentTicket.id === activeMember.assignedTicketId}
-								<div class="ticket-pill">Билет студента · {studentTicket.title}</div>
+								<div class="ticket-pill">{$_('session.studentTicketPill', { values: { title: studentTicket.title } })}</div>
 							{/if}
 						</div>
 
 						{#if loadingStudentTicket}
 							<div class="question-block">
-								<h2>Загружаем билет студента…</h2>
+								<h2>{$_('session.loadingStudentTicket')}</h2>
 							</div>
 						{:else if activeQuestion && activeQuestion.type === 'verbal'}
 							<div class="question-block">
 								<h2>{activeQuestion.text}</h2>
-								<div class="qcap">Запустите таймер, когда студент начнёт отвечать.</div>
+								<div class="qcap">{$_('session.startTimerHint')}</div>
 							</div>
 
 							<div class="timer-stage {verbalStage === 'recording' ? 'recording' : verbalStage === 'finished' ? 'finished' : ''}">
 								<div class="timer-state">
 									<span class="led"></span>
-									{verbalStage === 'recording' ? 'Идёт ответ' :
-									 verbalStage === 'finished' ? 'Ответ завершён' :
-									 'Ожидание — нажмите «Старт», когда студент начнёт'}
+									{verbalStage === 'recording' ? $_('session.timerRecording') :
+									 verbalStage === 'finished' ? $_('session.timerFinished') :
+									 $_('session.timerIdle')}
 								</div>
 
 								<div class="timer-display">{formatTime(elapsed)}</div>
 
 								<div class="timer-limit {overLimit ? 'warn' : ''}">
 									{#if overLimit}
-										Превышен лимит на <b>{formatTime(elapsed - activeQuestion.time)}</b>
+										{$_('session.overLimit')} <b>{formatTime(elapsed - activeQuestion.time)}</b>
 									{:else}
-										лимит ответа <b>{formatTime(activeQuestion.time)}</b>
+										{$_('session.answerLimit')} <b>{formatTime(activeQuestion.time)}</b>
 									{/if}
 								</div>
 
 								<div class="timer-actions">
 									{#if verbalStage === 'idle'}
 										<button class="big-btn start" onclick={verbalStart} disabled={session.status !== 'live'}>
-											<Icon name="play" /> Старт — студент начал
+											<Icon name="play" /> {$_('session.btnStart')}
 										</button>
 									{:else if verbalStage === 'recording'}
 										<button class="big-btn stop" onclick={verbalStop}>
-											<span class="rec-dot"></span> Стоп — ответ завершён
+											<span class="rec-dot"></span> {$_('session.btnStop')}
 										</button>
 									{:else}
 										<button class="big-btn reset" onclick={reset}>
-											<Icon name="back" /> Сбросить
+											<Icon name="back" /> {$_('session.btnReset')}
 										</button>
 										<button class="big-btn start" onclick={verbalStart}>
-											<Icon name="play" /> Заново
+											<Icon name="play" /> {$_('session.btnAgain')}
 										</button>
 									{/if}
 								</div>
@@ -440,7 +442,7 @@
 
 							<div class="rating-card">
 								<div class="rating-head">
-									<h4>Оценка ответа</h4>
+									<h4>{$_('session.ratingTitle')}</h4>
 									<div class="score"><b>{score}</b><small> / {activeQuestion.points}</small></div>
 								</div>
 								<div class="stars">
@@ -466,17 +468,17 @@
 										onclick={saveGrade}
 										style="opacity: {verbalStage === 'finished' ? 1 : 0.4}; cursor: {verbalStage === 'finished' ? 'pointer' : 'not-allowed'};"
 									>
-										<Icon name="check" /> Сохранить оценку и далее
+										<Icon name="check" /> {$_('session.saveGrade')}
 									</button>
 									<button class="btn ghost" onclick={() => (activeMemberId = null)}>
-										<Icon name="back" /> Назад в список
+										<Icon name="back" /> {$_('session.backToList')}
 									</button>
 								</div>
 							</div>
 						{:else if activeQuestion}
 							<div class="question-block">
 								<h2>{activeQuestion.text}</h2>
-								<div class="qcap">Это тестовый вопрос — оценится автоматически при завершении сессии.</div>
+								<div class="qcap">{$_('session.autoTestCap')}</div>
 							</div>
 						{/if}
 					{/if}
@@ -484,9 +486,9 @@
 
 				<aside class="rail">
 					<div class="rail-section">
-						<h4>Устные вопросы</h4>
+						<h4>{$_('session.verbalQuestions')}</h4>
 						{#if verbalQuestions.length === 0}
-							<div style="color: var(--muted); font-size: 13px;">В этом билете нет устных вопросов.</div>
+							<div style="color: var(--muted); font-size: 13px;">{$_('session.noVerbalQuestions')}</div>
 						{:else}
 							<ul class="rubric-list">
 								{#each verbalQuestions as q, i (q.id)}
@@ -506,10 +508,10 @@
 					</div>
 
 					<div class="rail-section">
-						<h4>Заметки</h4>
+						<h4>{$_('session.notes')}</h4>
 						<textarea
 							class="notes-area"
-							placeholder="Кратко: что раскрыл, что пропустил…"
+							placeholder={$_('session.notesPlaceholder')}
 							bind:value={notes}
 						></textarea>
 					</div>
@@ -518,7 +520,7 @@
 		{:else}
 			<div class="center">
 				<div class="question-block">
-					<h2>Загружаем сессию…</h2>
+					<h2>{$_('session.loadingSession')}</h2>
 				</div>
 			</div>
 		{/if}
@@ -530,8 +532,8 @@
 		<div class="toast-card">
 			<div class="toast-icon"><Icon name="check" size={22} stroke={2.4} /></div>
 			<div>
-				<div class="toast-title">Оценка сохранена</div>
-				<div class="toast-sub">{toast.name} · {toast.score} баллов — переходим к следующему…</div>
+				<div class="toast-title">{$_('session.gradeSaved')}</div>
+				<div class="toast-sub">{toast.name} · {$_('units.points', { values: { n: toast.score } })} — {$_('session.nextStudent')}</div>
 			</div>
 		</div>
 	</div>

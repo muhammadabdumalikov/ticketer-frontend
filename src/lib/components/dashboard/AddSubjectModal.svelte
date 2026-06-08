@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Icon from '$lib/components/Icon.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { subjectsApi, type CreateSubjectInput, type Subject } from '$lib/api/subjects';
@@ -31,7 +32,7 @@
 		return (parts[0][0] + parts[1][0]).toUpperCase();
 	}
 
-	let sigil = $derived(sigilManual || deriveSigil(name) || 'НП');
+	let sigil = $derived(sigilManual || deriveSigil(name) || $_('addSubject.sigilFallback'));
 	let valid = $derived(name.trim().length >= 2 && code.trim().length >= 2);
 
 	$effect(() => {
@@ -71,9 +72,9 @@
 <Modal {open} {onClose}>
 	<form onsubmit={submit} class="modal-form">
 		<div class="modal-head">
-			<div class="modal-eyebrow">Новый предмет</div>
-			<h3>Добавьте предмет в ваш список</h3>
-			<p>Предмет появится в списке. Билеты и экзамены вы сможете создать после.</p>
+			<div class="modal-eyebrow">{$_('addSubject.eyebrow')}</div>
+			<h3>{$_('addSubject.title')}</h3>
+			<p>{$_('addSubject.description')}</p>
 		</div>
 
 		<div class="modal-body">
@@ -83,30 +84,30 @@
 				</div>
 				<div style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
 					<div class="m-field">
-						<label for="subj-name">Название предмета</label>
+						<label for="subj-name">{$_('addSubject.nameLabel')}</label>
 						<input
 							id="subj-name"
 							bind:value={name}
-							placeholder="напр. Теория графов"
+							placeholder={$_('addSubject.namePlaceholder')}
 						/>
 					</div>
 					<div class="modal-row" style="grid-template-columns: 1fr 100px;">
 						<div class="m-field">
-							<label for="subj-code">Код</label>
+							<label for="subj-code">{$_('addSubject.codeLabel')}</label>
 							<input
 								id="subj-code"
 								bind:value={code}
-								placeholder="напр. MATH-380"
+								placeholder={$_('addSubject.codePlaceholder')}
 								style="text-transform: uppercase;"
 							/>
 						</div>
 						<div class="m-field">
-							<label for="subj-sigil">Сигил</label>
+							<label for="subj-sigil">{$_('addSubject.sigilLabel')}</label>
 							<input
 								id="subj-sigil"
 								value={sigil}
 								oninput={(e) => (sigilManual = e.currentTarget.value.slice(0, 3).toUpperCase())}
-								placeholder="ТГ"
+								placeholder={$_('addSubject.sigilPlaceholder')}
 								maxlength={3}
 								style="text-align: center; font-weight: 600; letter-spacing: 0.04em;"
 							/>
@@ -116,7 +117,7 @@
 			</div>
 
 			<div class="m-field">
-				<span class="m-label" id="color-label" style="font-size: 12.5px; color: var(--ink-2); font-weight: 500;">Цвет</span>
+				<span class="m-label" id="color-label" style="font-size: 12.5px; color: var(--ink-2); font-weight: 500;">{$_('addSubject.colorLabel')}</span>
 				<div class="color-swatches" aria-labelledby="color-label">
 					{#each COLORS as c (c)}
 						<button
@@ -133,7 +134,7 @@
 			</div>
 
 			<div class="m-field">
-				<label for="subj-students">Число студентов (опционально)</label>
+				<label for="subj-students">{$_('addSubject.studentsLabel')}</label>
 				<input
 					id="subj-students"
 					type="number" min="0" max="500"
@@ -148,9 +149,9 @@
 			</div>
 		{/if}
 		<div class="modal-foot">
-			<button type="button" class="btn btn-ghost" onclick={onClose}>Отмена</button>
+			<button type="button" class="btn btn-ghost" onclick={onClose}>{$_('common.cancel')}</button>
 			<button type="submit" class="btn btn-primary" disabled={!valid || saving}>
-				<Icon name="plus" /> {saving ? 'Создание…' : 'Добавить предмет'}
+				<Icon name="plus" /> {saving ? $_('common.creating') : $_('addSubject.submit')}
 			</button>
 		</div>
 	</form>

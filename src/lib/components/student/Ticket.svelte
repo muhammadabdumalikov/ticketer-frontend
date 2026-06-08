@@ -4,6 +4,8 @@
 	import { connectAsStudent } from '$lib/socket';
 	import { sessionsApi, type ApiAssignedTicket } from '$lib/api/sessions';
 	import { formatTime } from '$lib/api/adapters';
+	import { _ } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 
 	export type VerbalStatus = 'waiting' | 'recording' | 'finished';
 
@@ -57,7 +59,7 @@
 			}
 		});
 		sock.on('session:end', () => {
-			alert('Экзамен завершён.');
+			alert(get(_)('studentTicket.examEnded'));
 			onExit();
 		});
 		return () => sock?.disconnect();
@@ -101,7 +103,7 @@
 <div class="top">
 	<div class="title">
 		{assignedTicket.title}
-		<span class="info" title="Информация о билете">i</span>
+		<span class="info" title={$_('studentTicket.ticketInfo')}>i</span>
 	</div>
 	<div class="spacer"></div>
 	<div class="pill-time {timeWarn ? 'warn' : ''} {isVerbal && verbalStatus === 'recording' ? 'rec' : ''}">
@@ -111,7 +113,7 @@
 			{:else if verbalStatus === 'finished'}
 				<Icon name="check" /> {formatTime(verbalElapsed)}
 			{:else}
-				<Icon name="mic" /> Ожидание
+				<Icon name="mic" /> {$_('studentTicket.statusWaiting')}
 			{/if}
 		{:else}
 			<Icon name="clock" /> {formatTime(timeLeft)}
@@ -120,7 +122,7 @@
 	<div class="tools">
 		<div
 			class="tool danger"
-			title="Завершить и выйти"
+			title={$_('studentTicket.finishAndExit')}
 			onclick={onExit}
 			onkeydown={(e) => e.key === 'Enter' && onExit()}
 			role="button"
@@ -131,8 +133,8 @@
 
 <div class="ticket-body">
 	<div class="passage">
-		<h2>Вопрос {currentIdx + 1}</h2>
-		<div class="pcap">{isVerbal ? 'Устный ответ — преподаватель оценит вашу речь' : 'Выберите/введите правильный ответ'}</div>
+		<h2>{$_('studentTicket.questionNum', { values: { n: currentIdx + 1 } })}</h2>
+		<div class="pcap">{isVerbal ? $_('studentTicket.capVerbal') : $_('studentTicket.capAuto')}</div>
 		<p>{question.text}</p>
 	</div>
 
@@ -148,35 +150,35 @@
 					<Icon name="mic" />
 				</div>
 				<div class="verbal-state-label">
-					{verbalStatus === 'recording' ? 'Идёт ответ' :
-					 verbalStatus === 'finished' ? 'Ответ завершён' :
-					 'Приготовьтесь'}
+					{verbalStatus === 'recording' ? $_('studentTicket.verbalRecording') :
+					 verbalStatus === 'finished' ? $_('studentTicket.verbalFinished') :
+					 $_('studentTicket.verbalReady')}
 				</div>
 				<div class="verbal-state-sub">
 					{#if verbalStatus === 'recording'}
-						Говорите чётко и по существу. Преподаватель остановит таймер, когда вы закончите.
+						{$_('studentTicket.verbalSubRecording')}
 					{:else if verbalStatus === 'finished'}
-						Преподаватель оценивает ваш ответ.
+						{$_('studentTicket.verbalSubFinished')}
 					{:else}
-						Когда вы начнёте говорить, преподаватель запустит таймер. На ответ — до {Math.round(question.time / 60)} мин.
+						{$_('studentTicket.verbalSubReady', { values: { n: Math.round(question.time / 60) } })}
 					{/if}
 				</div>
 			</div>
 
 			<div class="verbal-meta">
 				<div>
-					<div class="k">Лимит</div>
-					<div class="v">до {Math.round(question.time / 60)} мин</div>
+					<div class="k">{$_('studentTicket.limit')}</div>
+					<div class="v">{$_('studentTicket.upToMin', { values: { n: Math.round(question.time / 60) } })}</div>
 				</div>
 				<div>
-					<div class="k">Макс баллов</div>
+					<div class="k">{$_('studentTicket.maxPoints')}</div>
 					<div class="v">{question.points}</div>
 				</div>
 			</div>
 		</div>
 	{:else if question.type === 'single' && question.answers}
 		<div class="opts-pane">
-			<div class="opts-head no-border">Выберите правильный вариант</div>
+			<div class="opts-head no-border">{$_('studentTicket.chooseOption')}</div>
 			<div class="opts">
 				{#each question.answers as o, i (i)}
 					{@const isSel = selected[question.id] === i}
@@ -195,16 +197,16 @@
 		</div>
 	{:else if question.type === 'text'}
 		<div class="opts-pane">
-			<div class="opts-head no-border">Введите ответ</div>
+			<div class="opts-head no-border">{$_('studentTicket.enterAnswer')}</div>
 			<input
 				bind:value={textAnswers[question.id]}
-				placeholder="Ваш ответ…"
+				placeholder={$_('studentTicket.yourAnswer')}
 				style="background: var(--field-2); border-radius: 14px; padding: 16px 18px; border: 1.5px solid transparent; font: inherit; font-size: 15.5px; color: var(--ink); outline: none;"
 			/>
 		</div>
 	{:else if question.type === 'numeric'}
 		<div class="opts-pane">
-			<div class="opts-head no-border">Введите численный ответ</div>
+			<div class="opts-head no-border">{$_('studentTicket.enterNumeric')}</div>
 			<input
 				type="number"
 				bind:value={numericAnswers[question.id]}
@@ -216,17 +218,17 @@
 </div>
 
 <div class="foot">
-	<div class="help" title="Помощь">?</div>
+	<div class="help" title={$_('studentTicket.help')}>?</div>
 	<div class="pager" role="button" tabindex="0">
-		Вопрос {currentIdx + 1} из {assignedTicket.totalQuestions}
+		{$_('studentTicket.pager', { values: { n: currentIdx + 1, total: assignedTicket.totalQuestions } })}
 		<span class="ch"><Icon name="down" /></span>
 	</div>
 	<div class="nav">
 		<button class="btn btn-outline" onclick={goPrev} disabled={currentIdx === 0}>
-			Назад
+			{$_('common.back')}
 		</button>
 		<button class="btn btn-primary" onclick={goNext}>
-			{currentIdx === assignedTicket.totalQuestions - 1 ? 'Завершить' : 'Далее'}
+			{currentIdx === assignedTicket.totalQuestions - 1 ? $_('studentTicket.finish') : $_('common.next')}
 		</button>
 	</div>
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import { examsApi, type ApiExamListItem } from '$lib/api/exams';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		exam: ApiExamListItem;
@@ -95,11 +96,11 @@
 		<div class="t-menu-pop" role="menu">
 			<button type="button" class="t-menu-item" onclick={handleView} role="menuitem">
 				<span class="t-menu-ic"><Icon name="eye" /></span>
-				<span>Просмотр</span>
+				<span>{$_('common.view')}</span>
 			</button>
 			<button type="button" class="t-menu-item" onclick={handleEdit} role="menuitem">
 				<span class="t-menu-ic"><Icon name="key" /></span>
-				<span>Редактировать</span>
+				<span>{$_('common.edit')}</span>
 			</button>
 			{#if exam.status === 'Черновик'}
 				<button
@@ -110,7 +111,7 @@
 					role="menuitem"
 				>
 					<span class="t-menu-ic"><Icon name="check" /></span>
-					<span>{busy ? 'Публикация…' : 'Опубликовать'}</span>
+					<span>{busy ? $_('common.publishing') : $_('common.publish')}</span>
 				</button>
 			{/if}
 			<div class="t-menu-sep"></div>
@@ -122,11 +123,11 @@
 					role="menuitem"
 				>
 					<span class="t-menu-ic"><Icon name="trash" /></span>
-					<span>Удалить</span>
+					<span>{$_('common.delete')}</span>
 				</button>
 			{:else}
 				<div class="t-menu-confirm">
-					<div class="t-menu-confirm-text">Удалить экзамен «{exam.title}»?</div>
+					<div class="t-menu-confirm-text">{$_('ticketActions.confirmDelete', { values: { title: exam.title } })}</div>
 					<div class="t-menu-confirm-row">
 						<button
 							type="button"
@@ -134,7 +135,7 @@
 							onclick={() => (confirming = false)}
 							disabled={busy}
 						>
-							Отмена
+							{$_('common.cancel')}
 						</button>
 						<button
 							type="button"
@@ -142,7 +143,7 @@
 							onclick={handleDelete}
 							disabled={busy}
 						>
-							{busy ? 'Удаление…' : 'Удалить'}
+							{busy ? $_('common.deleting') : $_('common.delete')}
 						</button>
 					</div>
 				</div>

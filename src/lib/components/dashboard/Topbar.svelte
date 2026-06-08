@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Icon from '$lib/components/Icon.svelte';
 
 	export interface Crumb {
@@ -12,7 +13,9 @@
 		primaryLabel?: string;
 	}
 
-	let { crumbs, onPrimary = null, primaryLabel = 'Новый экзамен' }: Props = $props();
+	let { crumbs, onPrimary = null, primaryLabel }: Props = $props();
+
+	let resolvedPrimaryLabel = $derived(primaryLabel ?? $_('topbar.newExam'));
 </script>
 
 <div class="topbar">
@@ -29,13 +32,13 @@
 	<div class="spacer"></div>
 	<label class="search">
 		<Icon name="search" />
-		<input placeholder="Поиск предметов, билетов, студентов…" />
+		<input placeholder={$_('topbar.searchPlaceholder')} />
 		<kbd>⌘ K</kbd>
 	</label>
 	<div class="ibtn-circle" role="button" tabindex="0"><Icon name="bell" /><span class="badge"></span></div>
 	{#if onPrimary}
 		<button class="btn btn-primary" onclick={onPrimary}>
-			<Icon name="plus" /> {primaryLabel}
+			<Icon name="plus" /> {resolvedPrimaryLabel}
 		</button>
 	{/if}
 </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	type Headline = 'ticket' | 'secure' | 'fair';
 	interface Props { headline?: Headline; }
 	let { headline = 'ticket' }: Props = $props();
@@ -12,45 +13,44 @@
 
 	<h1>
 		{#if headline === 'secure'}
-			Безопасные билеты для <em>университетских экзаменов.</em>
+			{$_('brand.headlineSecureLead')} <em>{$_('brand.headlineSecureEm')}</em>
 		{:else if headline === 'fair'}
-			Честно, под контролем, <em>и очень просто.</em>
+			{$_('brand.headlineFairLead')} <em>{$_('brand.headlineFairEm')}</em>
 		{:else}
-			Управляйте билетами экзаменов <em>без бумажной волокиты.</em>
+			{$_('brand.headlineTicketLead')} <em>{$_('brand.headlineTicketEm')}</em>
 		{/if}
 	</h1>
 	<p class="sub">
-		Рабочее пространство для билетов университетских преподавателей.
-		Создавайте банки вопросов, планируйте сессии, проводите экзамены и оценивайте — всё в одном месте.
+		{$_('brand.sub')}
 	</p>
 
 	<div class="spec">
-		<div class="label">Сегодня в Ticketer</div>
+		<div class="label">{$_('brand.todayLabel')}</div>
 		<div class="item">
 			<div class="num">01</div>
-			<div class="it"><b>Теория вероятностей — Весенний экзамен</b><br/><span>Открытие в 14:00 · 27 вопросов · 90 мин</span></div>
+			<div class="it"><b>{$_('brand.item1Title')}</b><br/><span>{$_('brand.item1Meta')}</span></div>
 		</div>
 		<div class="item">
 			<div class="num">02</div>
-			<div class="it"><b>Дискретная математика — Пересдача</b><br/><span>4 студента · с прокторингом</span></div>
+			<div class="it"><b>{$_('brand.item2Title')}</b><br/><span>{$_('brand.item2Meta')}</span></div>
 		</div>
 		<div class="item">
 			<div class="num">03</div>
-			<div class="it"><b>Математический анализ II — Проверка банка</b><br/><span>12 новых вопросов на проверке</span></div>
+			<div class="it"><b>{$_('brand.item3Title')}</b><br/><span>{$_('brand.item3Meta')}</span></div>
 		</div>
 	</div>
 
 	<div class="meta">
 		<div>
-			<div class="k">Преподавателей</div>
+			<div class="k">{$_('brand.statTeachers')}</div>
 			<div class="v">2 840</div>
 		</div>
 		<div>
-			<div class="k">Сессий / мес</div>
-			<div class="v">18,6<small>тыс.</small></div>
+			<div class="k">{$_('brand.statSessions')}</div>
+			<div class="v">18,6<small>{$_('brand.thousandAbbr')}</small></div>
 		</div>
 		<div>
-			<div class="k">Университетов</div>
+			<div class="k">{$_('brand.statUniversities')}</div>
 			<div class="v">112</div>
 		</div>
 	</div>

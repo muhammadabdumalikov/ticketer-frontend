@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import { goto } from '$app/navigation';
+	import { _ } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 	import type { Subject } from '$lib/api/subjects';
 	import { examsApi, type ApiExamListItem } from '$lib/api/exams';
 	import TicketActionsMenu from './TicketActionsMenu.svelte';
@@ -22,12 +24,12 @@
 	let viewingExamId = $state<string | null>(null);
 	let sharingExam = $state<ApiExamListItem | null>(null);
 
-	const tabs: Array<['exams' | 'bank' | 'sessions' | 'students', string]> = [
-		['exams', 'Экзамены'],
-		['bank', 'Банк вопросов'],
-		['sessions', 'Сессии'],
-		['students', 'Студенты']
-	];
+	let tabs = $derived<Array<['exams' | 'bank' | 'sessions' | 'students', string]>>([
+		['exams', $_('subjectView.tabs.exams')],
+		['bank', $_('subjectView.tabs.bank')],
+		['sessions', $_('subjectView.tabs.sessions')],
+		['students', $_('subjectView.tabs.students')]
+	]);
 
 	async function refresh() {
 		try {
@@ -55,7 +57,7 @@
 			const { sessionId } = await examsApi.launch(e.id);
 			goto(`/sessions/${sessionId}`);
 		} catch (err) {
-			alert(`Не удалось запустить экзамен: ${(err as Error).message}`);
+			alert(get(_)('subjectView.launchError', { values: { error: (err as Error).message } }));
 		} finally {
 			launching = null;
 		}
@@ -69,17 +71,17 @@
 		<div class="meta">
 			<span><b>{subject.code}</b></span>
 			<span>·</span>
-			<span><b>{subject.students}</b> записано</span>
+			<span><b>{subject.students}</b> {$_('subjectView.meta.enrolled', { values: { n: subject.students } })}</span>
 			<span>·</span>
-			<span><b>{subject.tickets}</b> билетов в банке</span>
+			<span><b>{subject.tickets}</b> {$_('subjectView.meta.ticketsInBank', { values: { n: subject.tickets } })}</span>
 			<span>·</span>
-			<span><b>{subject.exams}</b> экзаменов</span>
+			<span><b>{subject.exams}</b> {$_('subjectView.meta.exams', { values: { n: subject.exams } })}</span>
 		</div>
 	</div>
 	<div class="right">
-		<button class="btn btn-outline"><Icon name="eye" /> Предпросмотр</button>
+		<button class="btn btn-outline"><Icon name="eye" /> {$_('common.preview')}</button>
 		<button class="btn btn-primary" onclick={() => onCreateExam(subject)}>
-			<Icon name="plus" /> Новый экзамен
+			<Icon name="plus" /> {$_('subjectView.newExam')}
 		</button>
 	</div>
 </div>
@@ -93,7 +95,7 @@
 {#if tab === 'exams'}
 	{#if loadError}
 		<div class="empty">
-			<h3>Не удалось загрузить экзамены</h3>
+			<h3>{$_('subjectView.loadError')}</h3>
 			<p>{loadError}</p>
 		</div>
 	{:else}
@@ -109,18 +111,18 @@
 					<div class="num">{String(i + 1).padStart(2, '0')}</div>
 					<div>
 						<div class="title">{e.title}</div>
-						<div class="sub">Обновлено {e.updated} · автор: {e.author}</div>
+						<div class="sub">{$_('subjectView.row.updatedBy', { values: { date: e.updated, author: e.author } })}</div>
 					</div>
 					<div class="cell">
-						<div class="k">Билетов</div>
-						<div>{e.ticketCount} бил.</div>
+						<div class="k">{$_('subjectView.col.tickets')}</div>
+						<div>{e.ticketCount} {$_('units.ticketsAbbr')}</div>
 					</div>
 					<div class="cell">
-						<div class="k">Длительность</div>
-						<div>{e.durationMin} мин</div>
+						<div class="k">{$_('subjectView.col.duration')}</div>
+						<div>{e.durationMin} {$_('units.min')}</div>
 					</div>
 					<div>
-						<span class="pill {pillKind(e.status)}">{e.status.toUpperCase()}</span>
+						<span class="pill {pillKind(e.status)}">{$_('exams.statusPill.' + e.status).toUpperCase()}</span>
 					</div>
 					<div
 						style="text-align: right; display: flex; gap: 6px; justify-content: flex-end;"
@@ -134,14 +136,14 @@
 							disabled={launching === e.id}
 							onclick={() => runExam(e)}
 						>
-							<Icon name="play" /> {launching === e.id ? 'Запуск…' : 'Запустить'}
+							<Icon name="play" /> {launching === e.id ? $_('common.running') : $_('common.run')}
 						</button>
 						<button
 							class="btn btn-outline btn-sm"
 							onclick={() => (sharingExam = e)}
-							title="Поделиться ссылкой"
+							title={$_('subjectView.shareLink')}
 						>
-							<Icon name="share" /> Поделиться
+							<Icon name="share" /> {$_('common.share')}
 						</button>
 						<TicketActionsMenu
 							exam={e}
@@ -156,9 +158,9 @@
 	{/if}
 {:else}
 	<div class="empty">
-		<h3>{tab === 'bank' ? 'Банк вопросов' : tab === 'sessions' ? 'Сессии' : 'Студенты'}</h3>
-		<p>Этот раздел — часть полного прототипа. Пока сосредоточимся на создании экзамена.</p>
-		<button class="btn btn-primary" onclick={() => (tab = 'exams')}>Назад к экзаменам</button>
+		<h3>{tab === 'bank' ? $_('subjectView.tabs.bank') : tab === 'sessions' ? $_('subjectView.tabs.sessions') : $_('subjectView.tabs.students')}</h3>
+		<p>{$_('subjectView.prototypeNotice')}</p>
+		<button class="btn btn-primary" onclick={() => (tab = 'exams')}>{$_('subjectView.backToExams')}</button>
 	</div>
 {/if}
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Icon from '$lib/components/Icon.svelte';
 	import SubjectCard from './SubjectCard.svelte';
 	import Dropdown from '$lib/components/Dropdown.svelte';
@@ -69,25 +70,25 @@
 		});
 	});
 
-	const filters: Array<{ id: 'all' | 'live' | 'active' | 'draft'; label: string }> = [
-		{ id: 'all', label: 'Все' },
-		{ id: 'live', label: 'В эфире' },
-		{ id: 'active', label: 'Активные' },
-		{ id: 'draft', label: 'Черновики' }
-	];
+	let filters = $derived<Array<{ id: 'all' | 'live' | 'active' | 'draft'; label: string }>>([
+		{ id: 'all', label: $_('common.all') },
+		{ id: 'live', label: $_('subjects.filterLive') },
+		{ id: 'active', label: $_('subjects.filterActive') },
+		{ id: 'draft', label: $_('subjects.filterDraft') }
+	]);
 
-	const sortOpts = [
-		{ value: 'name', label: 'По названию' },
-		{ value: 'tickets', label: 'По числу билетов' },
-		{ value: 'students', label: 'По числу студентов' },
-		{ value: 'progress', label: 'По прогрессу' }
-	];
+	let sortOpts = $derived([
+		{ value: 'name', label: $_('subjects.sortName') },
+		{ value: 'tickets', label: $_('subjects.sortTickets') },
+		{ value: 'students', label: $_('subjects.sortStudents') },
+		{ value: 'progress', label: $_('subjects.sortProgress') }
+	]);
 </script>
 
 <div class="hello">
 	<div>
-		<h1>Предметы. <em>Всего {subjects.length}.</em></h1>
-		<div class="sub">Все предметы, которые вы ведёте в этом семестре. Откройте предмет, чтобы посмотреть его экзамены и банк вопросов.</div>
+		<h1>{$_('subjects.title')} <em>{$_('subjects.total', { values: { count: subjects.length } })}</em></h1>
+		<div class="sub">{$_('subjects.subtitle')}</div>
 	</div>
 	<div style="display: flex; gap: 8px;">
 		{#if hasMock}
@@ -95,29 +96,29 @@
 				class="btn btn-danger btn-lg"
 				onclick={removeMock}
 				disabled={mocking}
-				title="Удалить тестовый предмет"
+				title={$_('subjects.removeMockTitle')}
 			>
-				<Icon name="trash" /> {mocking ? 'Удаляем…' : 'Удалить демо'}
+				<Icon name="trash" /> {mocking ? $_('subjects.removingMock') : $_('subjects.removeMock')}
 			</button>
 		{:else}
 			<button
 				class="btn btn-outline btn-lg"
 				onclick={createMock}
 				disabled={mocking}
-				title="Создать тестовый предмет с экзаменом и билетами"
+				title={$_('subjects.createMockTitle')}
 			>
-				<Icon name="bolt" /> {mocking ? 'Создаём…' : 'Показать демо'}
+				<Icon name="bolt" /> {mocking ? $_('common.creating') : $_('subjects.showMock')}
 			</button>
 		{/if}
 		<button class="btn btn-primary btn-lg" onclick={onAddSubject}>
-			<Icon name="plus" /> Добавить предмет
+			<Icon name="plus" /> {$_('subjects.addSubject')}
 		</button>
 	</div>
 </div>
 
 {#if mockError}
 	<div style="background: var(--accent-soft); color: var(--accent); padding: 10px 14px; border-radius: 12px; font-size: 13px;">
-		Не удалось создать демо: {mockError}
+		{$_('subjects.mockError', { values: { error: mockError } })}
 	</div>
 {/if}
 
@@ -131,13 +132,13 @@
 		<Icon name="search" />
 		<input
 			bind:value={query}
-			placeholder="Поиск по названию или коду…"
+			placeholder={$_('subjects.searchPlaceholder')}
 			style="flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; color: var(--ink);"
 		/>
 	</div>
 	<div class="meta-field" style="min-width: 180px; padding: 6px 12px;">
 		<!-- svelte-ignore a11y_label_has_associated_control -->
-		<label>Сортировка</label>
+		<label>{$_('common.sort')}</label>
 		<div class="val">
 			<Icon name="list" />
 			<Dropdown value={sort} onChange={(v) => (sort = v)} variant="inline" options={sortOpts} />
@@ -153,8 +154,8 @@
 	</div>
 {:else}
 	<div class="empty">
-		<h3>Ничего не найдено</h3>
-		<p>Попробуйте изменить фильтр или поисковый запрос.</p>
-		<button class="btn btn-primary" onclick={() => { query = ''; filter = 'all'; }}>Сбросить фильтры</button>
+		<h3>{$_('common.notFound')}</h3>
+		<p>{$_('subjects.emptyHint')}</p>
+		<button class="btn btn-primary" onclick={() => { query = ''; filter = 'all'; }}>{$_('common.resetFilters')}</button>
 	</div>
 {/if}

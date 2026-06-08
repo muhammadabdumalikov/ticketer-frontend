@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
+	import { _ } from 'svelte-i18n';
 
-	const teacherRoutes = [
-		{ href: '/login', label: 'Login', sub: 'Teacher / Admin auth' },
-		{ href: '/dashboard', label: 'Dashboard', sub: 'Teacher workspace + exam builder + run sessions' }
-	];
-	const studentRoutes = [
-		{ href: '/student', label: 'Student', sub: 'Paste a session ID, then Join → Wait → Take' }
-	];
+	const teacherRoutes = $derived([
+		{ href: '/login', label: $_('landing.loginLabel'), sub: $_('landing.loginSub') },
+		{ href: '/dashboard', label: $_('landing.dashboardLabel'), sub: $_('landing.dashboardSub') }
+	]);
+	const studentRoutes = $derived([
+		{ href: '/student', label: $_('landing.studentLabel'), sub: $_('landing.studentSub') }
+	]);
 </script>
 
 <svelte:head>
-	<title>Ticketer</title>
+	<title>{$_('titles.app')}</title>
 	<style>
 		body { margin: 0; background: #ECECEC; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; color: #0A0A0A; }
 	</style>
@@ -23,12 +24,12 @@
 			<span class="logo"></span>
 			<span class="mark">ticketer<span class="dot">.</span></span>
 		</div>
-		<h1>University Exam Tickets Platform</h1>
-		<p>{auth.user ? `Signed in as ${auth.user.email}` : 'Sign in to start running exams.'}</p>
+		<h1>{$_('landing.platformTitle')}</h1>
+		<p>{auth.user ? $_('landing.signedInAs', { values: { email: auth.user.email } }) : $_('landing.signInPrompt')}</p>
 	</header>
 
 	<section>
-		<h2>Teacher</h2>
+		<h2>{$_('landing.sectionTeacher')}</h2>
 		<div class="grid">
 			{#each teacherRoutes as r (r.href)}
 				<a class="card" href={r.href}>
@@ -41,7 +42,7 @@
 	</section>
 
 	<section>
-		<h2>Student</h2>
+		<h2>{$_('landing.sectionStudent')}</h2>
 		<div class="grid">
 			{#each studentRoutes as r (r.href)}
 				<a class="card" href={r.href}>

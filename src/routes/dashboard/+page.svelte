@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '$lib/styles/dashboard.css';
+	import { _ } from 'svelte-i18n';
 	import { onMount } from 'svelte';
 	import Sidebar from '$lib/components/dashboard/Sidebar.svelte';
 	import Topbar, { type Crumb } from '$lib/components/dashboard/Topbar.svelte';
@@ -94,27 +95,27 @@
 	}
 
 	let returnLabel = $derived(
-		builderReturn === 'home' ? 'На Главную' :
-		builderReturn === 'subjects' ? 'К предметам' :
-		builderReturn === 'tickets' ? 'К билетам' :
-		builderReturn === 'subject' ? `К предмету ${activeSubject?.code || ''}`.trim() :
-		'Назад'
+		builderReturn === 'home' ? $_('dashboard.backToHome') :
+		builderReturn === 'subjects' ? $_('dashboard.backToSubjects') :
+		builderReturn === 'tickets' ? $_('dashboard.backToTickets') :
+		builderReturn === 'subject' ? $_('dashboard.backToSubject', { values: { code: activeSubject?.code || '' } }).trim() :
+		$_('common.back')
 	);
 
 	let crumbs = $derived<Crumb[]>(
-		view === 'home' ? [{ label: 'Рабочее пространство' }, { label: 'Главная' }]
-		: view === 'subjects' ? [{ label: 'Рабочее пространство' }, { label: 'Предметы' }]
-		: view === 'tickets' ? [{ label: 'Рабочее пространство' }, { label: 'Билеты' }]
+		view === 'home' ? [{ label: $_('nav.workspace') }, { label: $_('nav.home') }]
+		: view === 'subjects' ? [{ label: $_('nav.workspace') }, { label: $_('nav.subjects') }]
+		: view === 'tickets' ? [{ label: $_('nav.workspace') }, { label: $_('nav.tickets') }]
 		: view === 'subject' ? [
-			{ label: 'Рабочее пространство' },
-			{ label: 'Предметы', onClick: () => (view = 'subjects') },
-			{ label: activeSubject?.name || 'Предмет' }
+			{ label: $_('nav.workspace') },
+			{ label: $_('nav.subjects'), onClick: () => (view = 'subjects') },
+			{ label: activeSubject?.name || $_('dashboard.subject') }
 		]
 		: [
-			{ label: 'Рабочее пространство' },
-			{ label: 'Предметы', onClick: () => (view = 'subjects') },
-			{ label: activeSubject?.name || 'Предмет', onClick: () => (view = 'subject') },
-			{ label: editingExamId ? 'Редактирование экзамена' : 'Новый экзамен' }
+			{ label: $_('nav.workspace') },
+			{ label: $_('nav.subjects'), onClick: () => (view = 'subjects') },
+			{ label: activeSubject?.name || $_('dashboard.subject'), onClick: () => (view = 'subject') },
+			{ label: editingExamId ? $_('dashboard.editExam') : $_('dashboard.newExam') }
 		]
 	);
 
@@ -129,10 +130,10 @@
 
 	let totalExams = $derived(exams.length);
 	let primaryHandler = $derived((view === 'builder' || view === 'home') ? null : () => createExam(activeSubject));
-	let primaryLabel = $derived(view === 'subject' ? 'Новый экзамен' : 'Создать экзамен');
+	let primaryLabel = $derived(view === 'subject' ? $_('dashboard.newExam') : $_('dashboard.createExam'));
 </script>
 
-<svelte:head><title>Ticketer — Главная</title></svelte:head>
+<svelte:head><title>{$_('titles.home')}</title></svelte:head>
 
 <div class="app">
 	<Sidebar
@@ -148,12 +149,12 @@
 		/>
 
 		{#if loading && subjects.length === 0}
-			<div class="empty"><h3>Загружаем…</h3></div>
+			<div class="empty"><h3>{$_('common.loading')}</h3></div>
 		{:else if loadError && subjects.length === 0}
 			<div class="empty">
-				<h3>Не удалось подключиться к серверу</h3>
+				<h3>{$_('dashboard.connectError')}</h3>
 				<p>{loadError}</p>
-				<button class="btn btn-primary" onclick={refresh}>Повторить</button>
+				<button class="btn btn-primary" onclick={refresh}>{$_('common.retry')}</button>
 			</div>
 		{:else if view === 'home'}
 			<HomeView

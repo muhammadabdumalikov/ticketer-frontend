@@ -2,6 +2,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { examsApi, type ApiExamListItem } from '$lib/api/exams';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		open: boolean;
@@ -68,19 +69,19 @@
 <Modal {open} {onClose} width={560}>
 	<div class="modal-form">
 		<div class="modal-head">
-			<div class="modal-eyebrow">Поделиться экзаменом</div>
+			<div class="modal-eyebrow">{$_('shareExam.eyebrow')}</div>
 			<h3>{exam?.title ?? ''}</h3>
 			<p>
-				Отправьте ссылку студентам — они присоединятся к комнате и будут ждать, пока вы запустите экзамен.
+				{$_('shareExam.description')}
 			</p>
 		</div>
 
 		<div class="modal-body">
 			{#if loading}
-				<div style="text-align: center; color: var(--muted); padding: 16px;">Получаем ссылку…</div>
+				<div style="text-align: center; color: var(--muted); padding: 16px;">{$_('shareExam.gettingLink')}</div>
 			{:else if loadError}
 				<div class="share-err">
-					<b>Не удалось получить ссылку.</b>
+					<b>{$_('shareExam.linkError')}</b>
 					<div style="font-size: 13px; margin-top: 4px;">{loadError}</div>
 				</div>
 			{:else if sessionId}
@@ -94,23 +95,23 @@
 					/>
 					<button type="button" class="btn btn-primary share-copy" onclick={copy}>
 						<Icon name={copied ? 'check' : 'copy'} />
-						{copied ? 'Скопировано' : 'Копировать'}
+						{copied ? $_('shareExam.copied') : $_('shareExam.copy')}
 					</button>
 				</div>
 				{#if reused}
 					<div class="share-hint">
-						<Icon name="bolt" /> Используется уже существующая запланированная сессия. Все студенты, которые перешли по ссылке ранее, ждут в той же комнате.
+						<Icon name="bolt" /> {$_('shareExam.hintReused')}
 					</div>
 				{:else}
 					<div class="share-hint">
-						<Icon name="check" /> Создана новая сессия. Когда будете готовы, нажмите «Запустить» — экзамен начнётся для всех, кто уже зашёл.
+						<Icon name="check" /> {$_('shareExam.hintNew')}
 					</div>
 				{/if}
 			{/if}
 		</div>
 
 		<div class="modal-foot">
-			<button type="button" class="btn btn-ghost" onclick={onClose}>Закрыть</button>
+			<button type="button" class="btn btn-ghost" onclick={onClose}>{$_('common.close')}</button>
 		</div>
 	</div>
 </Modal>

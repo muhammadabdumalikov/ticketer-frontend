@@ -79,6 +79,12 @@ export interface UpdateExamInput {
 	tickets?: ExamTicketInput[];
 }
 
+/** Result of parsing an uploaded .docx (no exam is persisted yet). */
+export interface ParsedDocxExam {
+	title?: string;
+	tickets: ExamTicketInput[];
+}
+
 export const examsApi = {
 	list: (filters: { subjectId?: string; status?: string; q?: string } = {}) => {
 		const params = new URLSearchParams();
@@ -92,7 +98,12 @@ export const examsApi = {
 		request<ApiExamListItem[]>(`/subjects/${subjectId}/exams`),
 	get: (id: string) => request<ApiExamDetail>(`/exams/${id}`),
 	create: (body: CreateExamInput) =>
-		request<ApiExamDetail>('/exams', { method: 'POST', body: JSON.stringify(body) }),
+		request<{ id: string }>('/exams', { method: 'POST', body: JSON.stringify(body) }),
+	parseDocx: (file: File) => {
+		const form = new FormData();
+		form.append('file', file);
+		return request<ParsedDocxExam>('/exams/parse-docx', { method: 'POST', body: form });
+	},
 	update: (id: string, body: UpdateExamInput) =>
 		request<ApiExamDetail>(`/exams/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
 	publish: (id: string) => request<ApiExamDetail>(`/exams/${id}/publish`, { method: 'POST' }),

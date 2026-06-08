@@ -1,8 +1,11 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
+	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { ApiError } from '$lib/api/client';
+	import { _ } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 
 	let role = $state<'teacher' | 'admin'>('teacher');
 	let email = $state('teacher@example.com');
@@ -19,7 +22,7 @@
 		e.preventDefault();
 		error = '';
 		if (!valid) {
-			error = 'Введите корректную почту и пароль (минимум 6 символов).';
+			error = get(_)('login.errInvalid');
 			if (formEl) {
 				formEl.classList.remove('shake');
 				void formEl.offsetWidth;
@@ -35,9 +38,9 @@
 			error =
 				err instanceof ApiError
 					? err.status === 401
-						? 'Неверная почта или пароль.'
+						? get(_)('login.errBadCreds')
 						: err.message
-					: 'Не удалось войти. Попробуйте позже.';
+					: get(_)('login.errGeneric');
 			if (formEl) {
 				formEl.classList.remove('shake');
 				void formEl.offsetWidth;
@@ -51,18 +54,19 @@
 
 <section class="form-pane">
 	<div class="topline">
-		<span>Новый пользователь? <a href="#req" onclick={(e) => e.preventDefault()}>Запросить доступ преподавателя</a></span>
-		<span style="display:flex; align-items:center; gap:6px; font-size:13px;">
-			<Icon name="shield" /> SSO + 2FA доступны
+		<span>{$_('login.newUser')} <a href="#req" onclick={(e) => e.preventDefault()}>{$_('login.requestAccess')}</a></span>
+		<span style="display:flex; align-items:center; gap:10px; font-size:13px;">
+			<span style="display:flex; align-items:center; gap:6px;"><Icon name="shield" /> {$_('login.ssoAvailable')}</span>
+			<LanguageSwitcher compact />
 		</span>
 	</div>
 
 	<div class="formhead">
-		<h2>С возвращением.</h2>
-		<p>Войдите, чтобы управлять билетами, банками вопросов и сессиями.</p>
+		<h2>{$_('login.welcomeBack')}</h2>
+		<p>{$_('login.welcomeSub')}</p>
 	</div>
 
-	<div class="tabs" role="tablist" aria-label="Account role">
+	<div class="tabs" role="tablist" aria-label={$_('login.roleTablist')}>
 		<button
 			type="button"
 			role="tab"
@@ -72,7 +76,7 @@
 		>
 			<span class="dot-s"></span>
 			<Icon name="gradCap" />
-			Преподаватель
+			{$_('roles.teacher')}
 		</button>
 		<button
 			type="button"
@@ -83,13 +87,13 @@
 		>
 			<span class="dot-s"></span>
 			<Icon name="user" />
-			Администратор кафедры
+			{$_('roles.deptAdmin')}
 		</button>
 	</div>
 
 	<form bind:this={formEl} onsubmit={submit} style="display:flex; flex-direction:column; gap:18px;">
 		<div class="field">
-			<label for="email">Университетская почта</label>
+			<label for="email">{$_('login.emailLabel')}</label>
 			<div class="control">
 				<span class="lead"><Icon name="mail" /></span>
 				<input
@@ -104,8 +108,8 @@
 
 		<div class="field">
 			<label for="pw">
-				Пароль
-				<span class="hint">минимум 6 символов</span>
+				{$_('login.passwordLabel')}
+				<span class="hint">{$_('login.passwordHint')}</span>
 			</label>
 			<div class="control">
 				<span class="lead"><Icon name="lock" /></span>
@@ -120,7 +124,7 @@
 					class="trail"
 					onclick={() => (showPw = !showPw)}
 					onkeydown={(e) => e.key === 'Enter' && (showPw = !showPw)}
-					title={showPw ? 'Скрыть' : 'Показать'}
+					title={showPw ? $_('login.hide') : $_('login.show')}
 					role="button"
 					tabindex="0"
 				>
@@ -139,9 +143,9 @@
 				tabindex="0"
 			>
 				<div class="box"><Icon name="check" size={11} stroke={3.5} /></div>
-				Запомнить меня на этом устройстве
+				{$_('login.rememberMe')}
 			</div>
-			<a href="#forgot" class="forgot" onclick={(e) => e.preventDefault()}>Забыли пароль?</a>
+			<a href="#forgot" class="forgot" onclick={(e) => e.preventDefault()}>{$_('login.forgotPassword')}</a>
 		</div>
 
 		{#if error}
@@ -159,14 +163,14 @@
 		>
 			{#if loading}
 				<span class="spin"><Icon name="loader" /></span>
-				Проверка данных…
+				{$_('login.checking')}
 			{:else}
-				Войти в Ticketer
+				{$_('login.signIn')}
 				<Icon name="arrow" />
 			{/if}
 		</button>
 
-		<div class="divider">или войти через</div>
+		<div class="divider">{$_('login.ssoDivider')}</div>
 		<div class="sso">
 			<button type="button" class="btn btn-ghost">
 				<Icon name="google" size={18} />
@@ -180,10 +184,10 @@
 	</form>
 
 	<div class="foot">
-		<span class="status"><span class="led"></span>Все системы работают</span>
+		<span class="status"><span class="led"></span>{$_('login.allSystems')}</span>
 		<span style="display:flex; gap:16px;">
-			<a href="#privacy" onclick={(e) => e.preventDefault()}>Конфиденциальность</a>
-			<a href="#terms" onclick={(e) => e.preventDefault()}>Условия</a>
+			<a href="#privacy" onclick={(e) => e.preventDefault()}>{$_('login.privacy')}</a>
+			<a href="#terms" onclick={(e) => e.preventDefault()}>{$_('login.terms')}</a>
 			<a href="#ver" onclick={(e) => e.preventDefault()}>v2.4.1</a>
 		</span>
 	</div>

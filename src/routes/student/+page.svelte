@@ -6,6 +6,7 @@
 	import Waiting from '$lib/components/student/Waiting.svelte';
 	import Ticket from '$lib/components/student/Ticket.svelte';
 	import { sessionsApi, type ApiAssignedTicket, type ApiSession } from '$lib/api/sessions';
+	import { _ } from 'svelte-i18n';
 
 	type View = 'join' | 'waiting' | 'taking';
 
@@ -99,7 +100,7 @@
 	);
 </script>
 
-<svelte:head><title>Ticketer — Экзамен</title></svelte:head>
+<svelte:head><title>{$_('titles.exam')}</title></svelte:head>
 
 <div class="stage">
 	<div class="frame">

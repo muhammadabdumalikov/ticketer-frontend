@@ -2,6 +2,8 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import { goto } from '$app/navigation';
+	import { _ } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 	import type { Subject } from '$lib/api/subjects';
 	import { examsApi, type ApiExamListItem } from '$lib/api/exams';
 	import TicketActionsMenu from './TicketActionsMenu.svelte';
@@ -58,19 +60,19 @@
 	});
 
 	let statusFilters = $derived([
-		{ id: 'all', label: 'Все', count: counts.all },
-		{ id: 'Опубликован', label: 'Опубликованные', count: counts['Опубликован'] },
-		{ id: 'Запланирован', label: 'Запланированные', count: counts['Запланирован'] },
-		{ id: 'Черновик', label: 'Черновики', count: counts['Черновик'] },
-		{ id: 'Архив', label: 'Архив', count: counts['Архив'] }
+		{ id: 'all', label: $_('common.all'), count: counts.all },
+		{ id: 'Опубликован', label: $_('exams.filters.published'), count: counts['Опубликован'] },
+		{ id: 'Запланирован', label: $_('exams.filters.scheduled'), count: counts['Запланирован'] },
+		{ id: 'Черновик', label: $_('exams.filters.drafts'), count: counts['Черновик'] },
+		{ id: 'Архив', label: $_('exams.filters.archive'), count: counts['Архив'] }
 	]);
 
-	const sortOpts = [
-		{ value: 'updated', label: 'По дате изменения' },
-		{ value: 'title', label: 'По названию' },
-		{ value: 'subject', label: 'По предмету' },
-		{ value: 'questions', label: 'По числу вопросов' }
-	];
+	let sortOpts = $derived([
+		{ value: 'updated', label: $_('exams.sort.updated') },
+		{ value: 'title', label: $_('exams.sort.title') },
+		{ value: 'subject', label: $_('exams.sort.subject') },
+		{ value: 'questions', label: $_('exams.sort.questions') }
+	]);
 
 	function toggleSubject(id: string) {
 		subjectFilters = subjectFilters.includes(id)
@@ -101,7 +103,7 @@
 			const { sessionId } = await examsApi.launch(e.id);
 			goto(`/sessions/${sessionId}`);
 		} catch (err) {
-			alert(`Не удалось запустить экзамен: ${(err as Error).message}`);
+			alert(get(_)('exams.launchError', { values: { error: (err as Error).message } }));
 		} finally {
 			launching = null;
 		}
@@ -110,11 +112,11 @@
 
 <div class="hello">
 	<div>
-		<h1>Экзамены. <em>Всего {exams.length} в банке.</em></h1>
-		<div class="sub">Все экзамены по вашим предметам. Используйте фильтры, чтобы найти нужный.</div>
+		<h1>{$_('exams.title')} <em>{$_('exams.totalInBank', { values: { n: exams.length } })}</em></h1>
+		<div class="sub">{$_('exams.subtitle')}</div>
 	</div>
 	<button class="btn btn-primary btn-lg" onclick={() => onCreateExam(null)}>
-		<Icon name="plus" /> Создать экзамен
+		<Icon name="plus" /> {$_('exams.createExam')}
 	</button>
 </div>
 
@@ -133,25 +135,25 @@
 			<Icon name="search" />
 			<input
 				bind:value={query}
-				placeholder="Поиск по названию экзамена, предмету или коду…"
+				placeholder={$_('exams.searchPlaceholder')}
 				style="flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; color: var(--ink);"
 			/>
 		</div>
 		<div class="meta-field" style="min-width: 200px; padding: 6px 12px;">
 			<!-- svelte-ignore a11y_label_has_associated_control -->
-			<label>Сортировка</label>
+			<label>{$_('common.sort')}</label>
 			<div class="val">
 				<Icon name="list" />
 				<Dropdown value={sort} onChange={(v) => (sort = v)} variant="inline" options={sortOpts} />
 			</div>
 		</div>
 		{#if subjectFilters.length > 0 || query || statusFilter !== 'all'}
-			<button class="btn btn-ghost btn-sm" onclick={resetFilters}>Сбросить</button>
+			<button class="btn btn-ghost btn-sm" onclick={resetFilters}>{$_('common.reset')}</button>
 		{/if}
 	</div>
 
 	<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-		<div class="label-mono" style="margin-right: 4px;">Предметы:</div>
+		<div class="label-mono" style="margin-right: 4px;">{$_('exams.subjectsLabel')}</div>
 		{#each subjects as s (s.id)}
 			{@const on = subjectFilters.includes(s.id)}
 			<button
@@ -170,13 +172,13 @@
 	<div class="surface" style="padding: 14px 18px;">
 		<div class="t-table">
 			<div class="t-row head">
-				<span>№</span>
-				<span>Название экзамена</span>
-				<span>Предмет</span>
-				<span>Вопросов</span>
-				<span>Длительность</span>
-				<span>Изменено</span>
-				<span>Статус</span>
+				<span>{$_('exams.col.num')}</span>
+				<span>{$_('exams.col.title')}</span>
+				<span>{$_('exams.col.subject')}</span>
+				<span>{$_('exams.col.questions')}</span>
+				<span>{$_('exams.col.duration')}</span>
+				<span>{$_('exams.col.modified')}</span>
+				<span>{$_('exams.col.status')}</span>
 				<span></span>
 			</div>
 			{#each list as e, i (e.subjectId + '_' + e.id)}
@@ -190,7 +192,7 @@
 					<div class="num">{String(i + 1).padStart(2, '0')}</div>
 					<div>
 						<div class="title">{e.title}</div>
-						<div class="sub-line">Автор: {e.author}</div>
+						<div class="sub-line">{$_('exams.author', { values: { author: e.author } })}</div>
 					</div>
 					<div class="t-subj">
 						<span class="t-sigil" style="background: {e.subjectColor}18; color: {e.subjectColor}">
@@ -201,11 +203,11 @@
 							<div class="t-subj-code">{e.subjectCode}</div>
 						</div>
 					</div>
-					<div class="t-cell">{e.questionCount} вопр.</div>
-					<div class="t-cell">{e.durationMin} мин</div>
+					<div class="t-cell">{e.questionCount} {$_('units.questionsAbbr')}</div>
+					<div class="t-cell">{e.durationMin} {$_('units.min')}</div>
 					<div class="t-cell muted">{e.updated}</div>
 					<div>
-						<span class="pill {pillKind(e.status)}">{e.status.toUpperCase()}</span>
+						<span class="pill {pillKind(e.status)}">{$_('exams.statusPill.' + e.status).toUpperCase()}</span>
 					</div>
 					<div
 						style="text-align: right; display: flex; gap: 6px; justify-content: flex-end;"
@@ -219,17 +221,17 @@
 							disabled={launching === e.id}
 							onclick={() => runExam(e)}
 						>
-							<Icon name="play" /> {launching === e.id ? 'Запуск…' : 'Запустить'}
+							<Icon name="play" /> {launching === e.id ? $_('common.running') : $_('common.run')}
 						</button>
 						<button
 							class="btn btn-outline btn-sm"
 							onclick={() => (sharingExam = e)}
-							title="Поделиться ссылкой"
+							title={$_('exams.shareLink')}
 						>
-							<Icon name="share" /> Поделиться
+							<Icon name="share" /> {$_('common.share')}
 						</button>
 						<button class="btn btn-ghost btn-sm" onclick={() => openSubjectById(e.subjectId)}>
-							К предмету
+							{$_('exams.toSubject')}
 						</button>
 						<TicketActionsMenu
 							exam={e}
@@ -244,9 +246,9 @@
 	</div>
 {:else}
 	<div class="empty">
-		<h3>Экзамены не найдены</h3>
-		<p>Попробуйте изменить фильтры или поисковый запрос.</p>
-		<button class="btn btn-primary" onclick={resetFilters}>Сбросить фильтры</button>
+		<h3>{$_('exams.empty.title')}</h3>
+		<p>{$_('exams.empty.hint')}</p>
+		<button class="btn btn-primary" onclick={resetFilters}>{$_('common.resetFilters')}</button>
 	</div>
 {/if}
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
+	import { _ } from 'svelte-i18n';
 
 	export interface ExamMeta {
 		subject: string;
@@ -59,7 +60,7 @@
 	<div class="spacer"></div>
 	<div class="pill-time">
 		<span style="width: 8px; height: 8px; border-radius: 999px; background: var(--green); display: inline-block;"></span>
-		Сессия открыта
+		{$_('join.pill')}
 	</div>
 </div>
 
@@ -67,33 +68,31 @@
 	<div class="join-left">
 		<div class="wait-eyebrow">
 			<span class="pulse"></span>
-			ВЫ ПРИГЛАШЕНЫ НА ЭКЗАМЕН
+			{$_('join.eyebrow')}
 		</div>
 
 		<h1 class="wait-headline">
-			{examInfo?.subject ?? 'Экзамен'}.<br />
-			<em>Войдите в комнату, чтобы начать.</em>
+			{examInfo?.subject ?? $_('join.subjectFallback')}.<br />
+			<em>{$_('join.headlineEnter')}</em>
 		</h1>
 
 		<p class="wait-sub">
-			Введите ваше имя и группу — преподаватель увидит, что вы подключились.
-			Сразу после входа вы попадёте в комнату ожидания. Когда все будут готовы,
-			преподаватель запустит сессию и вам выпадет билет.
+			{$_('join.subtitle')}
 		</p>
 
 		{#if examInfo}
 			<div class="wait-meta">
 				<div class="it">
-					<div class="k">Преподаватель</div>
+					<div class="k">{$_('join.metaTeacher')}</div>
 					<div class="v">{examInfo.teacher}</div>
 				</div>
 				<div class="it">
-					<div class="k">Код</div>
+					<div class="k">{$_('join.metaCode')}</div>
 					<div class="v">{examInfo.code}</div>
 				</div>
 				<div class="it">
-					<div class="k">Длительность</div>
-					<div class="v">{examInfo.duration}<small> мин на билет</small></div>
+					<div class="k">{$_('join.metaDuration')}</div>
+					<div class="v">{examInfo.duration}<small> {$_('join.minPerTicket')}</small></div>
 				</div>
 			</div>
 		{/if}
@@ -101,48 +100,48 @@
 
 	<form class="join-right" onsubmit={submit}>
 		<div class="join-card-head">
-			<h3>Вход в сессию</h3>
-			<p>Эти данные увидят только преподаватель и комиссия.</p>
+			<h3>{$_('join.formHeading')}</h3>
+			<p>{$_('join.formDesc')}</p>
 		</div>
 
 		{#if !hasSession}
 			<div class="j-field">
-				<label for="j-session">Код / ID сессии</label>
+				<label for="j-session">{$_('join.fieldSession')}</label>
 				<input
 					id="j-session"
 					bind:value={sessionCode}
-					placeholder="вставьте UUID сессии"
+					placeholder={$_('join.placeholderSession')}
 					autocomplete="off"
 				/>
 			</div>
 		{/if}
 
 		<div class="j-field">
-			<label for="j-name">Фамилия и имя</label>
+			<label for="j-name">{$_('join.fieldName')}</label>
 			<input
 				id="j-name"
 				bind:value={name}
-				placeholder="напр. Михаил Соколов"
+				placeholder={$_('join.placeholderName')}
 				autocomplete="name"
 			/>
 		</div>
 
 		<div class="join-row">
 			<div class="j-field">
-				<label for="j-group">Группа</label>
+				<label for="j-group">{$_('join.fieldGroup')}</label>
 				<input
 					id="j-group"
 					bind:value={group}
-					placeholder="ИВТ-301"
+					placeholder={$_('join.placeholderGroup')}
 					autocomplete="off"
 				/>
 			</div>
 			<div class="j-field">
-				<label for="j-id">№ зачётки <span class="m-hint">(не обязательно)</span></label>
+				<label for="j-id">{$_('join.fieldStudentNumber')} <span class="m-hint">{$_('join.optional')}</span></label>
 				<input
 					id="j-id"
 					bind:value={studentNumber}
-					placeholder="например 23-1284"
+					placeholder={$_('join.placeholderStudentNumber')}
 					autocomplete="off"
 				/>
 			</div>
@@ -158,8 +157,7 @@
 		>
 			<span class="j-box {ready ? 'on' : ''}">{#if ready}<Icon name="check" />{/if}</span>
 			<span>
-				Я подтверждаю, что готов сдавать экзамен самостоятельно и не использую
-				запрещённые материалы.
+				{$_('join.consent')}
 			</span>
 		</div>
 
@@ -175,11 +173,11 @@
 			disabled={!valid || !ready || busy}
 			style="width: 100%; opacity: {(valid && ready && !busy) ? 1 : 0.45}; cursor: {(valid && ready && !busy) ? 'pointer' : 'not-allowed'};"
 		>
-			{busy ? 'Подключение…' : 'Войти в комнату'} <Icon name="arrow" />
+			{busy ? $_('join.connecting') : $_('join.enterRoom')} <Icon name="arrow" />
 		</button>
 
 		<div class="j-foot">
-			<Icon name="shield" /> Защищённая сессия · Все действия логируются
+			<Icon name="shield" /> {$_('join.footer')}
 		</div>
 	</form>
 </div>

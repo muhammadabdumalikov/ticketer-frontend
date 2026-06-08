@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { _ } from 'svelte-i18n';
 
 	export interface DropdownOption {
 		value: string;
@@ -23,7 +24,7 @@
 		value,
 		onChange,
 		options,
-		placeholder = 'Выбрать…',
+		placeholder,
 		icon,
 		align = 'left',
 		variant = 'inline',
@@ -35,7 +36,7 @@
 	let root: HTMLDivElement | undefined = $state();
 
 	let current = $derived(options.find((o) => o.value === value));
-	let currentLabel = $derived(current ? current.label : placeholder);
+	let currentLabel = $derived(current ? current.label : (placeholder ?? $_('common.choose')));
 
 	function onDocClick(e: MouseEvent) {
 		if (root && !root.contains(e.target as Node)) open = false;
