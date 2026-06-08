@@ -522,6 +522,7 @@
 	"session": {
 		"confirmEnd": "Imtihonni barcha talabalar uchun yakunlaysizmi?",
 		"loadStudentTicketFailed": "Talaba biletini yuklab bo'lmadi",
+		"noAssignedTicket": "Talabaga hali bilet berilmagan.",
 		"copyLinkPrompt": "Havolani nusxalang:",
 		"crumb": "Sessiya",
 		"statusLive": "SESSIYA FAOL",

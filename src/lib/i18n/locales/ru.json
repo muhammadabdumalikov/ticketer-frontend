@@ -522,6 +522,7 @@
 	"session": {
 		"confirmEnd": "Завершить экзамен для всех студентов?",
 		"loadStudentTicketFailed": "Не удалось загрузить билет студента",
+		"noAssignedTicket": "Студенту ещё не выпал билет.",
 		"copyLinkPrompt": "Скопируйте ссылку:",
 		"crumb": "Сессия",
 		"statusLive": "СЕССИЯ АКТИВНА",

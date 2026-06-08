@@ -84,6 +84,8 @@ export const sessionsApi = {
 	listUpcoming: () => request<ApiUpcomingSession[]>('/sessions/upcoming'),
 	get: (id: string) => request<ApiSession>(`/sessions/${id}`),
 	roster: (id: string) => request<ApiRoomMember[]>(`/sessions/${id}/roster`),
+	memberTicket: (id: string, memberId: string) =>
+		request<{ assignedTicketId: string | null }>(`/sessions/${id}/members/${memberId}/ticket`),
 	start: (id: string) => request<ApiSession>(`/sessions/${id}/start`, { method: 'POST' }),
 	end: (id: string) => request<ApiSession>(`/sessions/${id}/end`, { method: 'POST' }),
 

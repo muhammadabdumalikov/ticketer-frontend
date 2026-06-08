@@ -34,7 +34,9 @@
 	let toast = $state<{ name: string; score: number } | null>(null);
 	let copied = $state(false);
 
-	let activeTicket = $derived(studentTicket ?? ticket);
+	// When a student is selected, only ever show THAT student's assigned ticket
+	// (never the session default). The overview (no student) uses the session ticket.
+	let activeTicket = $derived(activeMemberId ? studentTicket : ticket);
 	let verbalQuestions = $derived(activeTicket?.questions.filter((q) => q.type === 'verbal') ?? []);
 	let activeMember = $derived(roster.find((m) => m.id === activeMemberId) ?? null);
 	let activeQuestion = $derived<ApiQuestion | null>(
@@ -73,6 +75,20 @@
 		sock.on('session:join', (payload: { member: ApiRoomMember }) => {
 			roster = [...roster.filter((m) => m.id !== payload.member.id), payload.member as ApiRoomMember];
 		});
+		sock.on(
+			'session:start',
+			(payload: { startedAt?: string; assignments?: { memberId: string; ticketId: string | null }[] }) => {
+				if (payload.assignments) {
+					const byId = new Map(payload.assignments.map((a) => [a.memberId, a.ticketId ?? null]));
+					roster = roster.map((m) =>
+						byId.has(m.id) ? { ...m, assignedTicketId: byId.get(m.id) ?? null } : m
+					);
+				}
+				if (session) {
+					session = { ...session, status: 'live', startedAt: session.startedAt ?? payload.startedAt ?? null };
+				}
+			}
+		);
 		sock.on('verbal:status', (payload: { memberId: string; questionId: string; stage: 'recording' | 'finished'; durationSec?: number }) => {
 			if (payload.memberId === activeMemberId && payload.questionId === activeQuestionId) {
 				verbalStage = payload.stage;
@@ -124,33 +140,39 @@
 		elapsed = 0;
 		score = 0;
 		notes = '';
-
-		const targetId = m.assignedTicketId ?? session?.ticketId ?? null;
-		if (!targetId) {
-			studentTicket = null;
-			return;
-		}
-		if (studentTicket?.id === targetId) return;
-
-		const cached = ticketCache.get(targetId);
-		if (cached) {
-			studentTicket = cached;
-			activeQuestionId = cached.questions.find((q) => q.type === 'verbal')?.id ?? null;
-			return;
-		}
-
+		studentTicket = null;
+		activeQuestionId = null;
 		loadingStudentTicket = true;
+
 		try {
-			const fetched = await ticketsApi.get(targetId);
-			// guard against stale fetches if the teacher clicked another student meanwhile
+			// Ask the server which ticket this member actually has — never assume
+			// from the (possibly stale) roster, and never fall back to the session
+			// default ticket.
+			const { assignedTicketId } = await sessionsApi.memberTicket(id, m.id);
+			// guard against stale responses if the teacher clicked another student
 			if (activeMemberId !== m.id) return;
-			ticketCache.set(fetched.id, fetched);
-			studentTicket = fetched;
-			activeQuestionId = fetched.questions.find((q) => q.type === 'verbal')?.id ?? null;
+			// keep the roster row in sync so the status dot / "with ticket" count match
+			roster = roster.map((r) => (r.id === m.id ? { ...r, assignedTicketId } : r));
+
+			if (!assignedTicketId) {
+				studentTicket = null;
+				return;
+			}
+
+			let detail = ticketCache.get(assignedTicketId) ?? null;
+			if (!detail) {
+				detail = await ticketsApi.get(assignedTicketId);
+				ticketCache.set(detail.id, detail);
+			}
+			if (activeMemberId !== m.id) return;
+			studentTicket = detail;
+			activeQuestionId = detail.questions.find((q) => q.type === 'verbal')?.id ?? null;
 		} catch (err) {
-			alert(`${get(_)('session.loadStudentTicketFailed')}: ${(err as Error).message}`);
+			if (activeMemberId === m.id) {
+				alert(`${get(_)('session.loadStudentTicketFailed')}: ${(err as Error).message}`);
+			}
 		} finally {
-			loadingStudentTicket = false;
+			if (activeMemberId === m.id) loadingStudentTicket = false;
 		}
 	}
 
@@ -479,6 +501,10 @@
 							<div class="question-block">
 								<h2>{activeQuestion.text}</h2>
 								<div class="qcap">{$_('session.autoTestCap')}</div>
+							</div>
+						{:else if !studentTicket}
+							<div class="question-block">
+								<h2>{$_('session.noAssignedTicket')}</h2>
 							</div>
 						{/if}
 					{/if}
