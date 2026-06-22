@@ -90,7 +90,7 @@
 		"allSystems": "Barcha tizimlar ishlamoqda",
 		"privacy": "Maxfiylik",
 		"terms": "Shartlar",
-		"errInvalid": "To'g'ri pochta va parol kiriting (kamida 6 ta belgi).",
+		"errInvalid": "To'g'ri pochta va parol kiriting (kamida 6 ta belgi)",
 		"errBadCreds": "Pochta yoki parol noto'g'ri.",
 		"errGeneric": "Kirib bo'lmadi. Keyinroq urinib ko'ring."
 	},
