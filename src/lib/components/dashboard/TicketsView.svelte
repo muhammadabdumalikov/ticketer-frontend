@@ -6,6 +6,7 @@
 	import { get } from 'svelte/store';
 	import type { Subject } from '$lib/api/subjects';
 	import { examsApi, type ApiExamListItem } from '$lib/api/exams';
+	import { relativeTime } from '$lib/i18n/format';
 	import TicketActionsMenu from './TicketActionsMenu.svelte';
 	import TicketDetailModal from './TicketDetailModal.svelte';
 	import ShareExamModal from './ShareExamModal.svelte';
@@ -205,7 +206,7 @@
 					</div>
 					<div class="t-cell">{e.questionCount} {$_('units.questionsAbbr')}</div>
 					<div class="t-cell">{e.durationMin} {$_('units.min')}</div>
-					<div class="t-cell muted">{e.updated}</div>
+					<div class="t-cell muted">{$relativeTime(e.updatedAt)}</div>
 					<div>
 						<span class="pill {pillKind(e.status)}">{$_('exams.statusPill.' + e.status).toUpperCase()}</span>
 					</div>

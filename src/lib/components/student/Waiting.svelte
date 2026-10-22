@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
-	import type { Socket } from 'socket.io-client';
 	import { connectAsStudent } from '$lib/socket';
 	import { sessionsApi, type ApiRoomMember, type ApiSession } from '$lib/api/sessions';
 	import { deriveSig } from '$lib/api/adapters';
@@ -12,16 +11,16 @@
 		memberId: string;
 		session: ApiSession | null;
 		onStarted: () => void;
+		onSessionLost: () => void;
 	}
-	let { sessionId, sessionToken, memberId, session, onStarted }: Props = $props();
+	let { sessionId, sessionToken, memberId, session, onStarted, onSessionLost }: Props = $props();
 
 	let roster = $state<ApiRoomMember[]>([]);
-	let sock: Socket | null = null;
 
 	$effect(() => {
 		// initial roster fetch (no-auth endpoint? actually requires teacher JWT). Skip — rely on WS broadcasts.
 		// As a fallback, we only know about ourselves until session:join fires.
-		sock = connectAsStudent(sessionId, sessionToken);
+		const { sock, close } = connectAsStudent(sessionId, sessionToken, onSessionLost);
 		sock.on('session:join', (payload: { member: ApiRoomMember & { online: boolean } }) => {
 			roster = [...roster.filter((m) => m.id !== payload.member.id), payload.member as ApiRoomMember];
 		});
@@ -34,7 +33,7 @@
 		const poll = setInterval(() => onStarted(), 3000);
 		return () => {
 			clearInterval(poll);
-			sock?.disconnect();
+			close();
 		};
 	});
 

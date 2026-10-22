@@ -389,3 +389,5 @@ body.page-proctor * { box-sizing: border-box; }
   .page-proctor .body { grid-template-columns: 1fr; }
   .page-proctor .roster, .page-proctor .rail { display: none; }
 }
+
+.page-proctor .r-row.offline { opacity: .45; }

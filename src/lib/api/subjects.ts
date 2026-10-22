@@ -31,7 +31,8 @@ export const subjectsApi = {
 	get: (id: string) => request<ApiSubject>(`/subjects/${id}`),
 	create: (body: CreateSubjectInput) =>
 		request<ApiSubject>('/subjects', { method: 'POST', body: JSON.stringify(body) }),
-	createMock: () => request<ApiSubject>('/subjects/mock', { method: 'POST' }),
+	createMock: (locale: string) =>
+		request<ApiSubject>(`/subjects/mock?locale=${encodeURIComponent(locale)}`, { method: 'POST' }),
 	removeMock: () => request<{ removed: number }>('/subjects/mock', { method: 'DELETE' }),
 	update: (id: string, body: UpdateSubjectInput) =>
 		request<ApiSubject>(`/subjects/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),

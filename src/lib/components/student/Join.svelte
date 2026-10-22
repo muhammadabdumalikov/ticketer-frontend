@@ -23,8 +23,11 @@
 		busy?: boolean;
 		errorMessage?: string;
 		onJoin: (p: JoinPayload) => void;
+		/** Name on a seat remembered from another tab — offered as one-click resume. */
+		resumeName?: string;
+		onResume?: () => void;
 	}
-	let { examInfo, hasSession, busy = false, errorMessage = '', onJoin }: Props = $props();
+	let { examInfo, hasSession, busy = false, errorMessage = '', onJoin, resumeName, onResume }: Props = $props();
 
 	let name = $state('');
 	let group = $state('');
@@ -103,6 +106,13 @@
 			<h3>{$_('join.formHeading')}</h3>
 			<p>{$_('join.formDesc')}</p>
 		</div>
+
+		{#if resumeName && onResume}
+			<div style="display: flex; align-items: center; gap: 12px; background: var(--field-2); padding: 12px 14px; border-radius: 12px; font-size: 13.5px;">
+				<span style="flex: 1;">{$_('join.resumeAs', { values: { name: resumeName } })}</span>
+				<button type="button" class="btn btn-primary" onclick={onResume}>{$_('join.resume')}</button>
+			</div>
+		{/if}
 
 		{#if !hasSession}
 			<div class="j-field">

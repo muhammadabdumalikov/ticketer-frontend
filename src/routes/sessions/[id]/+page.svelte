@@ -10,6 +10,7 @@
 	import { connectAsTeacher } from '$lib/socket';
 	import { deriveSig, formatTime } from '$lib/api/adapters';
 	import { _, locale } from 'svelte-i18n';
+	import { ticketTitle } from '$lib/i18n/format';
 	import { get } from 'svelte/store';
 
 	let id = $derived($page.params.id ?? '');
@@ -72,8 +73,18 @@
 
 	function openSocket() {
 		sock = connectAsTeacher(id);
+		let connectedOnce = false;
+		// Events sent while the socket was down are not replayed — re-read the
+		// session and roster after every reconnect.
+		sock.on('connect', () => {
+			if (connectedOnce) void refresh();
+			connectedOnce = true;
+		});
 		sock.on('session:join', (payload: { member: ApiRoomMember }) => {
 			roster = [...roster.filter((m) => m.id !== payload.member.id), payload.member as ApiRoomMember];
+		});
+		sock.on('member:presence', (payload: { memberId: string; online: boolean }) => {
+			roster = roster.map((m) => (m.id === payload.memberId ? { ...m, online: payload.online } : m));
 		});
 		sock.on(
 			'session:start',
@@ -103,6 +114,16 @@
 		});
 	}
 
+	async function refresh() {
+		try {
+			const [s, r] = await Promise.all([sessionsApi.get(id), sessionsApi.roster(id)]);
+			session = { ...s, ticket: s.ticket ?? session?.ticket };
+			roster = r;
+		} catch {
+			// keep the current view; the next reconnect tries again
+		}
+	}
+
 	$effect(() => {
 		if (verbalStage !== 'recording') return;
 		const t = setInterval(() => (elapsed += 1), 1000);
@@ -115,7 +136,7 @@
 			const updated = await sessionsApi.start(id);
 			session = updated;
 		} catch (err) {
-			alert(`Start failed: ${(err as Error).message}`);
+			alert(`${get(_)('session.startFailed')}: ${(err as Error).message}`);
 		} finally {
 			busy = false;
 		}
@@ -128,7 +149,7 @@
 			const updated = await sessionsApi.end(id);
 			session = updated;
 		} catch (err) {
-			alert(`End failed: ${(err as Error).message}`);
+			alert(`${get(_)('session.endFailed')}: ${(err as Error).message}`);
 		} finally {
 			busy = false;
 		}
@@ -187,7 +208,7 @@
 			elapsed = 0;
 			verbalStage = 'recording';
 		} catch (err) {
-			alert(`verbal/start failed: ${(err as Error).message}`);
+			alert(`${get(_)('session.verbalStartFailed')}: ${(err as Error).message}`);
 		}
 	}
 
@@ -197,7 +218,7 @@
 			await sessionsApi.verbalStop(id, { memberId: activeMemberId, questionId: activeQuestionId });
 			verbalStage = 'finished';
 		} catch (err) {
-			alert(`verbal/stop failed: ${(err as Error).message}`);
+			alert(`${get(_)('session.verbalStopFailed')}: ${(err as Error).message}`);
 		}
 	}
 
@@ -231,7 +252,7 @@
 				}
 			}, 1500);
 		} catch (err) {
-			alert(`grade failed: ${(err as Error).message}`);
+			alert(`${get(_)('session.gradeFailed')}: ${(err as Error).message}`);
 		}
 	}
 
@@ -268,7 +289,7 @@
 				<span class="sep">/</span>
 				<b>{session?.ticket?.subjectName ?? '…'}</b>
 				<span class="sep">/</span>
-				<span>{session?.ticket?.title ?? '…'}</span>
+				<span>{session?.ticket?.title ? $ticketTitle(session.ticket.title) : '…'}</span>
 			</div>
 			<div class="spacer"></div>
 			{#if session?.status === 'live'}
@@ -316,7 +337,8 @@
 					<div class="roster-list">
 						{#each roster as r (r.id)}
 							<div
-								class="r-row {r.id === activeMemberId ? 'active' : ''}"
+								class="r-row {r.id === activeMemberId ? 'active' : ''} {r.online ? '' : 'offline'}"
+								title={r.online ? undefined : $_('session.offline')}
 								onclick={() => pickMember(r)}
 								onkeydown={(e) => e.key === 'Enter' && pickMember(r)}
 								role="button"
@@ -361,7 +383,7 @@
 							</div>
 							<div class="sess-stat">
 								<div class="k">{$_('session.ticket')}</div>
-								<div class="v">{ticket.title}</div>
+								<div class="v">{$ticketTitle(ticket.title)}</div>
 								<div class="s">{$_('units.questionsAbbr', { values: { n: ticket.questions.length } })}</div>
 							</div>
 							<div class="sess-stat">
@@ -410,7 +432,7 @@
 								<div class="ticket-pill">{$_('session.verbalPill', { values: { n: Math.round(activeQuestion.time / 60) } })}</div>
 							{/if}
 							{#if activeMember.assignedTicketId && studentTicket && studentTicket.id === activeMember.assignedTicketId}
-								<div class="ticket-pill">{$_('session.studentTicketPill', { values: { title: studentTicket.title } })}</div>
+								<div class="ticket-pill">{$_('session.studentTicketPill', { values: { title: $ticketTitle(studentTicket.title) } })}</div>
 							{/if}
 						</div>
 

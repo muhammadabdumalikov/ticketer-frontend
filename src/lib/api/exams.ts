@@ -10,7 +10,9 @@ export interface ApiExamListItem {
 	shuffleMode: 'fixed' | 'shuffle' | 'random-bank';
 	questionCount: number;
 	ticketCount: number;
+	/** server-formatted relative time (Russian only) — prefer `updatedAt` */
 	updated: string;
+	updatedAt: string;
 	author: string;
 	subjectId: string;
 	subjectName: string;

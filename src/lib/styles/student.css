@@ -274,6 +274,10 @@ body.page-student * { box-sizing: border-box; }
 .page-student .opt.sel .r::after {
   content: ''; position: absolute; inset: 4px; background: var(--accent); border-radius: 999px;
 }
+.page-student .opt .r.check { border-radius: 6px; }
+.page-student .opt.sel .r.check::after { border-radius: 3px; }
+.page-student .opt.locked { cursor: not-allowed; opacity: .6; }
+.page-student .opt.locked:hover { background: var(--field-2); }
 
 .page-student .foot {
   display: grid; grid-template-columns: auto 1fr auto;

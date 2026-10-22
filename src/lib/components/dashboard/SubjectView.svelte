@@ -5,6 +5,7 @@
 	import { get } from 'svelte/store';
 	import type { Subject } from '$lib/api/subjects';
 	import { examsApi, type ApiExamListItem } from '$lib/api/exams';
+	import { relativeTime } from '$lib/i18n/format';
 	import TicketActionsMenu from './TicketActionsMenu.svelte';
 	import TicketDetailModal from './TicketDetailModal.svelte';
 	import ShareExamModal from './ShareExamModal.svelte';
@@ -111,7 +112,7 @@
 					<div class="num">{String(i + 1).padStart(2, '0')}</div>
 					<div>
 						<div class="title">{e.title}</div>
-						<div class="sub">{$_('subjectView.row.updatedBy', { values: { date: e.updated, author: e.author } })}</div>
+						<div class="sub">{$_('subjectView.row.updatedBy', { values: { date: $relativeTime(e.updatedAt), author: e.author } })}</div>
 					</div>
 					<div class="cell">
 						<div class="k">{$_('subjectView.col.tickets')}</div>

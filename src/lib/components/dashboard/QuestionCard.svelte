@@ -13,7 +13,13 @@
 		time: number;
 		difficulty: 'easy' | 'medium' | 'hard';
 		correct: number;
+		/** correct option indices for `multi` */
+		correctMulti: number[];
 		answers: string[];
+		/** reference answer for `text` / `numeric`, kept as typed */
+		expected: string;
+		/** allowed ± deviation for `numeric` */
+		tolerance: number;
 		rubric: string;
 	}
 
@@ -44,7 +50,25 @@
 		let correct = q.correct;
 		if (i < correct) correct -= 1;
 		else if (i === correct) correct = 0;
-		setQ({ answers: next, correct });
+		const correctMulti = q.correctMulti.filter((j) => j !== i).map((j) => (j > i ? j - 1 : j));
+		setQ({ answers: next, correct, correctMulti });
+	}
+
+	function isCorrect(i: number): boolean {
+		return q.type === 'multi' ? q.correctMulti.includes(i) : q.correct === i;
+	}
+
+	function markCorrect(i: number) {
+		if (q.type !== 'multi') {
+			setQ({ correct: i });
+			return;
+		}
+		const on = q.correctMulti.includes(i);
+		setQ({
+			correctMulti: on
+				? q.correctMulti.filter((j) => j !== i)
+				: [...q.correctMulti, i].sort((a, b) => a - b)
+		});
 	}
 
 	function addAnswer() {
@@ -60,6 +84,8 @@
 		$_('question.type.numeric')
 	);
 	let isVerbal = $derived(q.type === 'verbal');
+	// Verbal answers are graded on a 5-point scale.
+	const MAX_VERBAL_POINTS = 5;
 
 	let typeOpts = $derived([
 		{ value: 'single', label: $_('question.type.single') },
@@ -116,17 +142,46 @@
 				></textarea>
 			</div>
 		</div>
+	{:else if q.type === 'text' || q.type === 'numeric'}
+		<div class="verbal-block">
+			<div class="m-field">
+				<label for="expected-{q.id}">{$_('question.expectedLabel')} <span class="m-hint">{q.type === 'text' ? $_('question.expectedHintText') : $_('question.expectedHint')}</span></label>
+				<input
+					id="expected-{q.id}"
+					type={q.type === 'numeric' ? 'number' : 'text'}
+					step="any"
+					value={q.expected}
+					oninput={(e) => setQ({ expected: e.currentTarget.value })}
+					placeholder={q.type === 'numeric' ? '0.5' : $_('question.expectedPlaceholder')}
+				/>
+			</div>
+			{#if q.type === 'numeric'}
+				<div class="m-field">
+					<label for="tolerance-{q.id}">{$_('question.toleranceLabel')}</label>
+					<input
+						id="tolerance-{q.id}"
+						type="number"
+						min="0"
+						step="any"
+						value={q.tolerance}
+						oninput={(e) => setQ({ tolerance: Math.abs(parseFloat(e.currentTarget.value) || 0) })}
+					/>
+				</div>
+			{/if}
+		</div>
 	{:else}
 		<div class="answers">
 			{#each q.answers as a, i (i)}
-				<div class="answer {q.correct === i ? 'correct' : ''}">
+				<div class="answer {isCorrect(i) ? 'correct' : ''}">
+					<!-- role is radio or checkbox, both interactive; the checker can't see through the expression -->
+					<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 					<div
-						class="radio"
-						onclick={() => setQ({ correct: i })}
-						onkeydown={(e) => e.key === 'Enter' && setQ({ correct: i })}
+						class="radio {q.type === 'multi' ? 'check' : ''}"
+						onclick={() => markCorrect(i)}
+						onkeydown={(e) => e.key === 'Enter' && markCorrect(i)}
 						title={$_('question.markCorrect')}
-						role="radio"
-						aria-checked={q.correct === i}
+						role={q.type === 'multi' ? 'checkbox' : 'radio'}
+						aria-checked={isCorrect(i)}
 						tabindex="0"
 					></div>
 					<input
@@ -157,7 +212,7 @@
 			<label>{isVerbal ? $_('question.maxPoints') : $_('question.pointsForCorrect')}</label>
 			<div class="val">
 				<Icon name="star" />
-				<input type="number" min="0" max="100" value={q.points} oninput={(e) => setQ({ points: parseInt(e.currentTarget.value || '0', 10) })} />
+				<input type="number" min="0" max={isVerbal ? MAX_VERBAL_POINTS : 100} value={q.points} oninput={(e) => { const n = parseInt(e.currentTarget.value || '0', 10); setQ({ points: isVerbal ? Math.min(n, MAX_VERBAL_POINTS) : n }); }} />
 				<span style="color: var(--muted); font-size: 13px;">{$_('question.pointsUnit')}</span>
 			</div>
 		</div>
@@ -188,7 +243,7 @@
 			<label>{$_('question.typeLabel')}</label>
 			<div class="val">
 				<Icon name="list" />
-				<Dropdown value={q.type} onChange={(v) => setQ({ type: v as QuestionType })} variant="inline" options={typeOpts} />
+				<Dropdown value={q.type} onChange={(v) => setQ(v === 'verbal' ? { type: v, points: Math.min(q.points, MAX_VERBAL_POINTS) } : { type: v as QuestionType })} variant="inline" options={typeOpts} />
 			</div>
 		</div>
 	</div>

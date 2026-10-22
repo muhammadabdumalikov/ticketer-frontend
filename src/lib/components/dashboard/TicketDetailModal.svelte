@@ -4,6 +4,7 @@
 	import { examsApi, type ApiExamDetail } from '$lib/api/exams';
 	import type { ApiQuestion } from '$lib/api/tickets';
 	import { _ } from 'svelte-i18n';
+	import { ticketTitle } from '$lib/i18n/format';
 	import { get } from 'svelte/store';
 
 	interface Props {
@@ -94,7 +95,7 @@
 			{:else if detail}
 				<h3>{detail.title}</h3>
 				<div class="td-meta">
-					<span class="pill {pillKind(detail.status)}">{detail.status.toUpperCase()}</span>
+					<span class="pill {pillKind(detail.status)}">{$_('exams.statusPill.' + detail.status).toUpperCase()}</span>
 					<span class="td-dot">·</span>
 					<span>{detail.durationMin} {$_('units.min')}</span>
 					<span class="td-dot">·</span>
@@ -125,7 +126,7 @@
 							<span class="td-ticket-chev {isCollapsed ? '' : 'open'}">
 								<Icon name="chev" />
 							</span>
-							<span class="td-ticket-title">{ticket.title}</span>
+							<span class="td-ticket-title">{$ticketTitle(ticket.title)}</span>
 							<span class="td-ticket-meta">
 								{ticket.questions.length} {$_('units.questionsAbbr')} · {$_('ticketDetail.pointsCount', { values: { n: ticketPoints } })}
 							</span>

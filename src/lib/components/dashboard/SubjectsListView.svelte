@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 	import Icon from '$lib/components/Icon.svelte';
 	import SubjectCard from './SubjectCard.svelte';
 	import Dropdown from '$lib/components/Dropdown.svelte';
@@ -23,7 +24,7 @@
 		mocking = true;
 		mockError = '';
 		try {
-			await subjectsApi.createMock();
+			await subjectsApi.createMock(get(locale) ?? 'ru');
 			onMockCreated?.();
 		} catch (err) {
 			mockError = (err as Error).message;

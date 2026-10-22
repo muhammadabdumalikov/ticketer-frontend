@@ -675,6 +675,8 @@ body.page-dashboard * { box-sizing: border-box; }
 .page-dashboard .answer.correct .radio::after {
   content: ''; position: absolute; inset: 4px; background: var(--accent); border-radius: 999px;
 }
+.page-dashboard .answer .radio.check { border-radius: 6px; }
+.page-dashboard .answer.correct .radio.check::after { border-radius: 3px; }
 .page-dashboard .answer input.atext {
   appearance: none; border: 0; outline: none; background: transparent;
   font: inherit; font-size: 14.5px; color: var(--ink);

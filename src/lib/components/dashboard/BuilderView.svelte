@@ -13,6 +13,17 @@
 		type ExamQuestionInput,
 		type ExamTicketInput
 	} from '$lib/api/exams';
+	import { errorCode } from '$lib/api/client';
+	import { autoTicketNumber, ticketTitle } from '$lib/i18n/format';
+
+	// .docx import error codes from the server → messages in the teacher's language.
+	const IMPORT_ERRORS: Record<string, string> = {
+		no_file: 'builder.import.errNoFile',
+		not_docx: 'builder.import.errNotDocx',
+		unreadable_docx: 'builder.import.errUnreadable',
+		no_questions: 'builder.import.errNoQuestions',
+		variants_without_questions: 'builder.import.errEmptyVariants'
+	};
 
 	interface Props {
 		subjects: Subject[];
@@ -55,7 +66,10 @@
 			time: 60,
 			difficulty: 'medium',
 			correct: 0,
+			correctMulti: [],
 			answers: ['', '', ''],
+			expected: '',
+			tolerance: 0,
 			rubric: ''
 		};
 	}
@@ -81,10 +95,11 @@
 			points: q.points,
 			time: q.time,
 			difficulty: q.difficulty,
-			correct: Array.isArray(q.correct)
-				? (q.correct as unknown as number)
-				: (typeof q.correct === 'number' ? q.correct : 0),
+			correct: typeof q.correct === 'number' ? q.correct : 0,
+			correctMulti: Array.isArray(q.correct) ? q.correct : [],
 			answers: q.answers && q.answers.length > 0 ? q.answers : ['', '', ''],
+			expected: q.expected != null ? String(q.expected) : '',
+			tolerance: q.tolerance ?? 0,
 			rubric: q.rubric ?? ''
 		};
 	}
@@ -95,11 +110,14 @@
 			id: uid('q'),
 			text: q.text ?? '',
 			type: q.type,
-			points: q.points ?? 10,
+			points: q.points ?? 5,
 			time: q.time ?? 300,
 			difficulty: q.difficulty ?? 'medium',
 			correct: typeof q.correct === 'number' ? q.correct : 0,
+			correctMulti: Array.isArray(q.correct) ? q.correct : [],
 			answers: q.answers && q.answers.length > 0 ? q.answers : ['', '', ''],
+			expected: q.expected != null ? String(q.expected) : '',
+			tolerance: q.tolerance ?? 0,
 			rubric: q.rubric ?? ''
 		};
 	}
@@ -179,7 +197,7 @@
 				tickets = e.tickets.length
 					? e.tickets.map((t, i) => ({
 							uid: uid('tk'),
-							title: t.title || defaultTicketTitle(i + 1),
+							title: t.title ? get(ticketTitle)(t.title) : defaultTicketTitle(i + 1),
 							questions: t.questions.length
 								? t.questions.map(fromApiQuestion)
 								: [makeQuestion()],
@@ -234,8 +252,11 @@
 			time: q.time,
 			difficulty: q.difficulty,
 			...(q.type === 'single' ? { answers: q.answers, correct: q.correct } : {}),
-			...(q.type === 'multi'
-				? { answers: q.answers, correct: Array.isArray(q.correct) ? q.correct : [] }
+			...(q.type === 'multi' ? { answers: q.answers, correct: q.correctMulti } : {}),
+			...(q.type === 'text' ? { expected: q.expected.trim() } : {}),
+			// a blank reference is omitted so the server leaves the question for manual grading
+			...(q.type === 'numeric'
+				? { ...(q.expected.trim() !== '' ? { expected: Number(q.expected) } : {}), tolerance: q.tolerance }
 				: {}),
 			...(q.type === 'verbal' ? { rubric: q.rubric ?? '' } : {})
 		};
@@ -243,7 +264,12 @@
 
 	function ticketsPayload(): ExamTicketInput[] {
 		return tickets.map((t) => ({
-			title: t.title.trim() || undefined,
+			// Auto-named tickets are sent untitled so the server stores its canonical
+			// name, which every viewer then sees in their own language.
+			title:
+				autoTicketNumber(t.title) !== null || isDefaultTicketTitle(t.title)
+					? undefined
+					: t.title.trim() || undefined,
 			questions: t.questions.map(buildQuestionPayload)
 		}));
 	}
@@ -352,7 +378,8 @@
 			}
 			step = steps.length - 1; // jump to the tickets step for review
 		} catch (err) {
-			importError = (err as Error).message;
+			const code = errorCode(err);
+			importError = code && IMPORT_ERRORS[code] ? get(_)(IMPORT_ERRORS[code]) : (err as Error).message;
 		} finally {
 			importing = false;
 		}
@@ -370,7 +397,7 @@
 			// the user hasn't customised the title. Matches the legacy "Билет №N"
 			// pattern as well as the current localised default title.
 			title:
-				/^Билет №\d+$/.test(t.title) || isDefaultTicketTitle(t.title)
+				autoTicketNumber(t.title) !== null || isDefaultTicketTitle(t.title)
 					? defaultTicketTitle(i + 1)
 					: t.title
 		}));
@@ -415,7 +442,8 @@
 		const dup = {
 			...ticket.questions[qIdx],
 			id: uid('q'),
-			answers: ticket.questions[qIdx].answers.slice()
+			answers: ticket.questions[qIdx].answers.slice(),
+			correctMulti: ticket.questions[qIdx].correctMulti.slice()
 		};
 		const nextQ = ticket.questions.slice();
 		nextQ.splice(qIdx + 1, 0, dup);

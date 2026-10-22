@@ -317,7 +317,12 @@
 			"bannerTitle": "Biletlarni DOCX'dan import qilish",
 			"bannerDesc": "Variantlar va savollar bo'lgan .docx faylni yuklang — biletlar va savollar avtomatik yaratiladi. E'lon qilishdan oldin ularni tahrirlashingiz mumkin.",
 			"error": "Faylni import qilib bo'lmadi",
-			"confirmReplace": "Joriy biletlar fayldan import qilinganlari bilan almashtirilsinmi?"
+			"confirmReplace": "Joriy biletlar fayldan import qilinganlari bilan almashtirilsinmi?",
+			"errNoFile": "Fayl yuklanmadi.",
+			"errNotDocx": "Faqat .docx fayllar qo'llab-quvvatlanadi.",
+			"errUnreadable": ".docx faylni o'qib bo'lmadi.",
+			"errNoQuestions": "Hujjatda savollar topilmadi. Fayl formatini tekshiring.",
+			"errEmptyVariants": "Variantlar topildi, lekin ularda savol yo'q. Har bir variant ostiga savollar qo'shing."
 		},
 		"subjectPicker": {
 			"title": "Yangi imtihon qaysi fan uchun?",
@@ -339,14 +344,32 @@
 			"shuffleLabel": "Savollar tartibi"
 		},
 		"visibility": {
-			"private": { "label": "Faqat yozilgan talabalar", "hint": "Guruh ro'yxati bo'yicha ochiq" },
-			"department": { "label": "Kafedra", "hint": "Kafedraning barcha o'qituvchilari biletni ko'radi" },
-			"public": { "label": "Ommaviy havola", "hint": "Havolaga ega bo'lgan har kim" }
+			"private": {
+				"label": "Faqat yozilgan talabalar",
+				"hint": "Guruh ro'yxati bo'yicha ochiq"
+			},
+			"department": {
+				"label": "Kafedra",
+				"hint": "Kafedraning barcha o'qituvchilari biletni ko'radi"
+			},
+			"public": {
+				"label": "Ommaviy havola",
+				"hint": "Havolaga ega bo'lgan har kim"
+			}
 		},
 		"shuffle": {
-			"fixed": { "label": "Qat'iy", "hint": "Siz kiritgan tartibda" },
-			"shuffle": { "label": "Aralashtirish", "hint": "Har bir talaba uchun o'z ketma-ketligi" },
-			"randomBank": { "label": "Bankdan tasodifiy", "hint": "Savollar bankidan teglar bo'yicha olish" }
+			"fixed": {
+				"label": "Qat'iy",
+				"hint": "Siz kiritgan tartibda"
+			},
+			"shuffle": {
+				"label": "Aralashtirish",
+				"hint": "Har bir talaba uchun o'z ketma-ketligi"
+			},
+			"randomBank": {
+				"label": "Bankdan tasodifiy",
+				"hint": "Savollar bankidan teglar bo'yicha olish"
+			}
 		},
 		"tickets": {
 			"defaultTitle": "{n}-bilet",
@@ -417,7 +440,12 @@
 		"answerLimit": "Javobga cheklov",
 		"answerTime": "Javob berish vaqti",
 		"difficultyLabel": "Qiyinlik",
-		"typeLabel": "Savol turi"
+		"typeLabel": "Savol turi",
+		"expectedLabel": "To'g'ri javob",
+		"expectedHint": "(talabaga ko'rinmaydi, avtomatik tekshiriladi)",
+		"expectedHintText": "(katta-kichik harf va ortiqcha bo'shliqlar hisobga olinmaydi)",
+		"expectedPlaceholder": "masalan Parij",
+		"toleranceLabel": "Ruxsat etilgan xatolik (±)"
 	},
 	"ticketActions": {
 		"confirmDelete": "«{title}» imtihoni o'chirilsinmi?"
@@ -473,7 +501,14 @@
 		"consent": "Imtihonni mustaqil topshirishga tayyorligimni va taqiqlangan materiallardan foydalanmasligimni tasdiqlayman.",
 		"connecting": "Ulanmoqda…",
 		"enterRoom": "Xonaga kirish",
-		"footer": "Himoyalangan sessiya · Barcha amallar qayd etiladi"
+		"footer": "Himoyalangan sessiya · Barcha amallar qayd etiladi",
+		"sessionLost": "Bu imtihon boshqa oyna yoki qurilmada ochildi. Davom etish uchun qayta kiring.",
+		"resumeAs": "Siz {name} sifatida kirgansiz.",
+		"resume": "Davom etish",
+		"seatInUse": "Bu talaba hozir boshqa oyna yoki qurilmadan ulangan. O'sha oynani yoping yoki bir daqiqadan so'ng qayta urinib ko'ring.",
+		"identityMismatch": "Bu guruhda shu ism bilan boshqa talaba allaqachon kirgan. Ismingizni to'liqroq yozing yoki o'qituvchiga murojaat qiling.",
+		"sessionNotFound": "Sessiya topilmadi. Havolani tekshiring.",
+		"sessionFinished": "Bu imtihon allaqachon yakunlangan."
 	},
 	"waiting": {
 		"subjectFallback": "Imtihon",
@@ -517,7 +552,13 @@
 		"enterNumeric": "Raqamli javobni kiriting",
 		"help": "Yordam",
 		"pager": "{total} dan {n}-savol",
-		"finish": "Yakunlash"
+		"finish": "Yakunlash",
+		"confirmExit": "Imtihondan chiqmoqchimisiz? Javoblaringiz saqlanadi, lekin qaytish uchun qayta kirishingiz kerak bo'ladi.",
+		"confirmExitUnsaved": "Ba'zi javoblar hali serverga yetib bormadi. Baribir chiqasizmi?",
+		"saveFailed": "Javob saqlanmadi — internet aloqasini tekshiring. Aloqa tiklanganda qayta yuboriladi.",
+		"chooseOptions": "Barcha to'g'ri variantlarni tanlang",
+		"timeUp": "Bu savol uchun vaqt tugadi",
+		"examTimeOver": "Imtihon vaqti tugadi — yozma javoblar endi qabul qilinmaydi. Og'zaki savol bo'lsa, o'qituvchini kuting."
 	},
 	"session": {
 		"confirmEnd": "Imtihonni barcha talabalar uchun yakunlaysizmi?",
@@ -574,6 +615,12 @@
 		"notesPlaceholder": "Qisqacha: nimani ochib berdi, nimani tushirib qoldirdi…",
 		"loadingSession": "Sessiya yuklanmoqda…",
 		"gradeSaved": "Baho saqlandi",
-		"nextStudent": "keyingisiga o'tamiz…"
+		"nextStudent": "keyingisiga o'tamiz…",
+		"offline": "Oflayn",
+		"startFailed": "Sessiyani boshlab bo'lmadi",
+		"endFailed": "Sessiyani yakunlab bo'lmadi",
+		"verbalStartFailed": "Taymerni ishga tushirib bo'lmadi",
+		"verbalStopFailed": "Taymerni to'xtatib bo'lmadi",
+		"gradeFailed": "Bahoni saqlab bo'lmadi"
 	}
 }

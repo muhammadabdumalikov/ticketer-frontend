@@ -42,10 +42,24 @@ export interface ApiAssignedTicket {
 	questions: Array<Omit<ApiQuestion, 'correct' | 'rubric' | 'expected' | 'tolerance' | 'difficulty'>>;
 }
 
+export interface ApiMyAnswer {
+	questionId: string;
+	selectedIndex: number | null;
+	selectedIndices: number[] | null;
+	textValue: string | null;
+	numericValue: number | null;
+	// verbal timing, set by the proctor
+	startedAt: string | null;
+	endedAt: string | null;
+	durationSec: number | null;
+}
+
 export interface ApiMyState {
 	member: ApiRoomMember & { sessionId: string };
 	assignedTicket: ApiAssignedTicket | null;
 	sessionId: string;
+	session: { status: SessionStatus; startedAt: string | null; endedAt: string | null };
+	answers: ApiMyAnswer[];
 }
 
 export interface JoinResponse {
