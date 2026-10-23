@@ -12,7 +12,7 @@
 	import { _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 
-	type View = 'join' | 'waiting' | 'taking' | 'finished';
+	type View = 'loading' | 'join' | 'waiting' | 'taking' | 'finished';
 
 	// Server error codes → messages in the student's language.
 	const JOIN_ERRORS: Record<string, string> = {
@@ -40,8 +40,11 @@
 		if (fromUrl) {
 			sessionId = fromUrl;
 			const found = loadSeat(fromUrl);
-			if (found?.thisTab) void resume(found.seat);
-			else if (found) resumeSeat = found.seat;
+			if (found?.thisTab) {
+				// Don't flash the join form while the saved seat is being restored.
+				view = 'loading';
+				void resume(found.seat);
+			} else if (found) resumeSeat = found.seat;
 		}
 		return () => document.body.classList.remove('page-student');
 	});
@@ -185,7 +188,14 @@
 
 <div class="stage">
 	<div class="frame">
-		{#if view === 'join'}
+		{#if view === 'loading'}
+			<div class="top">
+				<div class="title">ticketer<span style="color: var(--accent);">.</span></div>
+			</div>
+			<div class="wait-body" style="grid-template-columns: 1fr; place-items: center;">
+				<div class="wait-sub" style="text-align: center;">{$_('common.loading')}</div>
+			</div>
+		{:else if view === 'join'}
 			<Join
 				examInfo={examMeta}
 				hasSession={!!sessionId}

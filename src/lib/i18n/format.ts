@@ -1,5 +1,5 @@
 import { derived } from 'svelte/store';
-import { _, locale } from 'svelte-i18n';
+import { _ } from 'svelte-i18n';
 
 // Tickets without a custom name are stored as "Билет №N" — the server's
 // canonical auto-title. Older builder versions also saved the Uzbek default
@@ -21,16 +21,18 @@ export const ticketTitle = derived(_, ($t) => (title: string) => {
 	return n === null ? title : $t('builder.tickets.defaultTitle', { values: { n } });
 });
 
-/** `$relativeTime(iso)`: "5 daqiqa oldin" / "5 минут назад" in the current locale. */
-export const relativeTime = derived(locale, ($locale) => {
-	const fmt = new Intl.RelativeTimeFormat($locale ?? 'ru', { numeric: 'auto' });
+/**
+ * `$relativeTime(iso)`: "5 daqiqa oldin" / "5 минут назад".
+ * Built from our own translations: `Intl.RelativeTimeFormat` has no usable
+ * Uzbek data in Chrome and prints "-20 h" / "-6 w".
+ */
+export const relativeTime = derived(_, ($t) => {
 	return (iso: string): string => {
-		const sec = (new Date(iso).getTime() - Date.now()) / 1000;
-		const abs = Math.abs(sec);
-		if (abs < 60) return fmt.format(0, 'second');
-		if (abs < 3600) return fmt.format(Math.round(sec / 60), 'minute');
-		if (abs < 86400) return fmt.format(Math.round(sec / 3600), 'hour');
-		if (abs < 604800) return fmt.format(Math.round(sec / 86400), 'day');
-		return fmt.format(Math.round(sec / 604800), 'week');
+		const age = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+		if (age < 60) return $t('ago.justNow');
+		if (age < 3600) return $t('ago.minutes', { values: { n: Math.floor(age / 60) } });
+		if (age < 86400) return $t('ago.hours', { values: { n: Math.floor(age / 3600) } });
+		if (age < 604800) return $t('ago.days', { values: { n: Math.floor(age / 86400) } });
+		return $t('ago.weeks', { values: { n: Math.floor(age / 604800) } });
 	};
 });

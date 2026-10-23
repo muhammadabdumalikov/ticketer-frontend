@@ -427,11 +427,6 @@
 								<Icon name="user" />
 								<span>{$_('session.hintPickStudent')}</span>
 							</div>
-						{:else if session?.status === 'scheduled' && roster.length === 0}
-							<div class="sess-hint">
-								<Icon name="copy" />
-								<span>{$_('session.hintCopyLinkPre')} <Icon name="copy" size={14} /> {$_('session.hintCopyLinkPost')}</span>
-							</div>
 						{/if}
 					{:else}
 						<div class="student-card">

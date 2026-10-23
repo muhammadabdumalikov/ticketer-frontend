@@ -590,8 +590,6 @@
 		"verbal": "Og'zaki",
 		"ofQuestions": "{n} ta savoldan",
 		"hintPickStudent": "Chapdagi ro'yxatdan talabani bosing — u yerda og'zaki so'rov o'tkazib, baho qo'yishingiz mumkin.",
-		"hintCopyLinkPre": "Yuqoridagi",
-		"hintCopyLinkPost": "ikonkasini bosib, talabalar uchun havolani nusxalang.",
 		"studentNumberLabel": "Reyting daftarchasi raqami",
 		"verbalPill": "Og'zaki · {n} daqiqagacha",
 		"studentTicketPill": "Talaba bileti · {title}",
@@ -637,5 +635,12 @@
 		"final": "Yakuniy natija.",
 		"noTicket": "Sizga bilet berilmagan edi, natija yo'q.",
 		"loadFailed": "Natijani yuklab bo'lmadi. Sahifani yangilang."
+	},
+	"ago": {
+		"justNow": "hozirgina",
+		"minutes": "{n} daqiqa oldin",
+		"hours": "{n} soat oldin",
+		"days": "{n} kun oldin",
+		"weeks": "{n} hafta oldin"
 	}
 }
