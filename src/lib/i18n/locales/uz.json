@@ -527,7 +527,8 @@
 		"hintText": "Agar varaqni tasodifan yopsangiz, xuddi shu havolani oching — xonaga qaytasiz.",
 		"inRoom": "Xonada",
 		"meTag": "SIZ",
-		"autoRefresh": "Imtihon boshlanganda, sahifa avtomatik yangilanadi."
+		"autoRefresh": "Imtihon boshlanganda, sahifa avtomatik yangilanadi.",
+		"metaExam": "Imtihon"
 	},
 	"studentTicket": {
 		"examEnded": "Imtihon yakunlandi.",

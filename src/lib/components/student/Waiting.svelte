@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import { connectAsStudent } from '$lib/socket';
-	import { sessionsApi, type ApiRoomMember, type ApiSession } from '$lib/api/sessions';
+	import type { ApiPublicSession, ApiRoomMember } from '$lib/api/sessions';
 	import { deriveSig } from '$lib/api/adapters';
 	import { _ } from 'svelte-i18n';
 
@@ -9,7 +9,7 @@
 		sessionId: string;
 		sessionToken: string;
 		memberId: string;
-		session: ApiSession | null;
+		session: ApiPublicSession | null;
 		onStarted: () => void;
 		onSessionLost: () => void;
 	}
@@ -64,7 +64,7 @@
 
 <div class="top">
 	<div class="title">
-		{session?.ticket?.subjectName ?? $_('waiting.subjectFallback')}
+		{session?.subjectName ?? $_('waiting.subjectFallback')}
 		<span class="info" title={$_('waiting.info')}>i</span>
 	</div>
 	<div class="spacer"></div>
@@ -92,19 +92,19 @@
 		<div class="wait-meta">
 			<div class="it">
 				<div class="k">{$_('waiting.metaSubject')}</div>
-				<div class="v">{session?.ticket?.subjectName ?? '—'}</div>
+				<div class="v">{session?.subjectName ?? '—'}</div>
 			</div>
 			<div class="it">
 				<div class="k">{$_('waiting.metaCode')}</div>
-				<div class="v">{session?.ticket?.subjectCode ?? '—'}</div>
+				<div class="v">{session?.subjectCode ?? '—'}</div>
 			</div>
 			<div class="it">
-				<div class="k">{$_('waiting.metaTicket')}</div>
-				<div class="v">{session?.ticket?.title ?? '—'}</div>
+				<div class="k">{$_('waiting.metaExam')}</div>
+				<div class="v">{session?.examTitle ?? '—'}</div>
 			</div>
 			<div class="it">
 				<div class="k">{$_('waiting.metaDuration')}</div>
-				<div class="v">{session?.ticket?.durationMin ?? '—'}<small> {$_('units.min')}</small></div>
+				<div class="v">{session?.durationMin ?? '—'}<small> {$_('units.min')}</small></div>
 			</div>
 		</div>
 

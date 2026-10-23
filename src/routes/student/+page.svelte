@@ -6,7 +6,7 @@
 	import Waiting from '$lib/components/student/Waiting.svelte';
 	import Ticket from '$lib/components/student/Ticket.svelte';
 	import Finished from '$lib/components/student/Finished.svelte';
-	import { sessionsApi, type ApiAssignedTicket, type ApiSession } from '$lib/api/sessions';
+	import { sessionsApi, type ApiAssignedTicket, type ApiPublicSession } from '$lib/api/sessions';
 	import { errorCode, isUnauthorized } from '$lib/api/client';
 	import { clearSeat, loadSeat, saveSeat, type StudentSeat } from '$lib/stores/student-seat';
 	import { _ } from 'svelte-i18n';
@@ -26,7 +26,7 @@
 	let sessionId = $state<string>('');
 	let sessionToken = $state<string>('');
 	let memberId = $state<string>('');
-	let session = $state<ApiSession | null>(null);
+	let session = $state<ApiPublicSession | null>(null);
 	let assignedTicket = $state<ApiAssignedTicket | null>(null);
 	let joinBusy = $state(false);
 	let joinError = $state('');
@@ -88,12 +88,22 @@
 
 	$effect(() => {
 		if (!sessionId) return;
-		sessionsApi.get(sessionId).then((s) => {
-			session = s;
-			// If session has already started and we don't yet have a member, stay on join.
-		}).catch(() => {
-			// We don't surface this as a hard error — the student may not have permission yet.
-		});
+		const id = sessionId;
+		sessionsApi
+			.getPublic(id)
+			.then((s) => {
+				session = s;
+				// A finished exam can't be joined — say so before the student fills in the form.
+				if (s.status === 'finished' && view === 'join' && !joinError) {
+					joinError = get(_)('join.sessionFinished');
+				}
+			})
+			.catch((err) => {
+				if (errorCode(err) === 'session_not_found' && view === 'join') {
+					joinError = get(_)('join.sessionNotFound');
+				}
+				// anything else (network): the form still works, it just shows no exam details
+			});
 	});
 
 	async function handleJoin(payload: JoinPayload) {
@@ -115,11 +125,11 @@
 			if (new URL(window.location.href).searchParams.get('session') !== id) {
 				replaceState(`?session=${id}`, {});
 			}
-			// Try to fetch session meta + my state
+			// The id may have been typed in by hand — load the exam details for it.
 			try {
-				session = await sessionsApi.get(id);
+				session = await sessionsApi.getPublic(id);
 			} catch {
-				// session.get requires teacher auth; fall through, Waiting can run without meta
+				// Waiting can run without the details
 			}
 			view = 'waiting';
 			// In case the session is already live, transition immediately:
@@ -159,13 +169,13 @@
 
 	// Try to derive minimal exam meta from session.ticket if available; otherwise leave null.
 	let examMeta = $derived(
-		session?.ticket
+		session
 			? {
-					subject: session.ticket.subjectName,
-					code: session.ticket.subjectCode,
+					subject: session.subjectName,
+					code: session.subjectCode,
 					date: '',
-					duration: session.ticket.durationMin,
-					teacher: ''
+					duration: session.durationMin,
+					teacher: session.teacherName
 				}
 			: null
 	);

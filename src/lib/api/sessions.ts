@@ -24,6 +24,17 @@ export interface ApiSession {
 	};
 }
 
+/** What a student may see about a session before joining (no auth needed). */
+export interface ApiPublicSession {
+	id: string;
+	status: SessionStatus;
+	examTitle: string;
+	durationMin: number;
+	subjectName: string;
+	subjectCode: string;
+	teacherName: string;
+}
+
 export interface ApiRoomMember {
 	id: string;
 	name: string;
@@ -106,6 +117,7 @@ export const sessionsApi = {
 	end: (id: string) => request<ApiSession>(`/sessions/${id}/end`, { method: 'POST' }),
 
 	// Student
+	getPublic: (id: string) => request<ApiPublicSession>(`/sessions/${id}/public`),
 	join: (id: string, body: { name: string; group: string; studentNumber?: string }) =>
 		request<JoinResponse>(`/sessions/${id}/members`, {
 			method: 'POST',
