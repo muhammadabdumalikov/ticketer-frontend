@@ -578,3 +578,19 @@ body.page-student * { box-sizing: border-box; }
   .page-student .foot .pager { padding: 6px 14px; font-size: 13px; }
   .page-student .foot .nav .btn { padding: 10px 14px; font-size: 13.5px; }
 }
+
+/* ── Finished screen ── */
+.page-student .wait-eyebrow .pulse.done { background: var(--green, #1F9D55); box-shadow: 0 0 0 4px rgba(31, 157, 85, .18); animation: none; }
+.page-student .result-card {
+  background: var(--field-2); border-radius: 24px; padding: 36px 40px;
+  display: flex; flex-direction: column; justify-content: center; gap: 18px;
+}
+.page-student .result-card .k {
+  font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.page-student .result-card .score { font-size: 72px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+.page-student .result-card .score small { font-size: 28px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+.page-student .result-card .bar { height: 8px; border-radius: 999px; background: #E6E6E6; overflow: hidden; }
+.page-student .result-card .bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width .4s; }
+.page-student .result-card .note { color: var(--muted); font-size: 14.5px; line-height: 1.5; }

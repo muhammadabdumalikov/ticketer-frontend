@@ -17,9 +17,11 @@
 		memberId: string;
 		assignedTicket: ApiAssignedTicket;
 		onExit: () => void;
+		/** The exam is over (teacher ended it, or the server closed it). */
+		onEnded: () => void;
 		onSessionLost: () => void;
 	}
-	let { sessionId, sessionToken, memberId, assignedTicket, onExit, onSessionLost }: Props = $props();
+	let { sessionId, sessionToken, memberId, assignedTicket, onExit, onEnded, onSessionLost }: Props = $props();
 
 	type VerbalState = { stage: VerbalStatus; startedAtMs?: number; durationSec?: number };
 
@@ -238,8 +240,7 @@
 		} catch {
 			// ignore
 		}
-		alert(get(_)('studentTicket.examEnded'));
-		onExit();
+		onEnded();
 	}
 
 	async function exitExam() {

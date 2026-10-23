@@ -5,13 +5,14 @@
 	import Join, { type JoinPayload } from '$lib/components/student/Join.svelte';
 	import Waiting from '$lib/components/student/Waiting.svelte';
 	import Ticket from '$lib/components/student/Ticket.svelte';
+	import Finished from '$lib/components/student/Finished.svelte';
 	import { sessionsApi, type ApiAssignedTicket, type ApiSession } from '$lib/api/sessions';
 	import { errorCode, isUnauthorized } from '$lib/api/client';
 	import { clearSeat, loadSeat, saveSeat, type StudentSeat } from '$lib/stores/student-seat';
 	import { _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 
-	type View = 'join' | 'waiting' | 'taking';
+	type View = 'join' | 'waiting' | 'taking' | 'finished';
 
 	// Server error codes → messages in the student's language.
 	const JOIN_ERRORS: Record<string, string> = {
@@ -53,11 +54,11 @@
 		memberId = seat.memberId;
 		try {
 			const me = await sessionsApi.me(sessionId, seat.sessionToken);
+			saveSeat(sessionId, seat);
 			if (me.session.status === 'finished') {
-				leave(get(_)('studentTicket.examEnded'));
+				view = 'finished';
 				return;
 			}
-			saveSeat(sessionId, seat);
 			if (me.assignedTicket) {
 				assignedTicket = me.assignedTicket;
 				view = 'taking';
@@ -136,7 +137,7 @@
 		try {
 			const me = await sessionsApi.me(sessionId, sessionToken);
 			if (me.session.status === 'finished') {
-				leave(get(_)('studentTicket.examEnded'));
+				view = 'finished';
 			} else if (me.assignedTicket) {
 				assignedTicket = me.assignedTicket;
 				view = 'taking';
@@ -200,8 +201,11 @@
 				{memberId}
 				{assignedTicket}
 				onExit={exitExam}
+				onEnded={() => (view = 'finished')}
 				onSessionLost={handleSessionLost}
 			/>
+		{:else if view === 'finished'}
+			<Finished {sessionId} {sessionToken} onClose={exitExam} onSessionLost={handleSessionLost} />
 		{/if}
 	</div>
 </div>

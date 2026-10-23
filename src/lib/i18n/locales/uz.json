@@ -622,5 +622,19 @@
 		"verbalStartFailed": "Taymerni ishga tushirib bo'lmadi",
 		"verbalStopFailed": "Taymerni to'xtatib bo'lmadi",
 		"gradeFailed": "Bahoni saqlab bo'lmadi"
+	},
+	"finished": {
+		"titleFallback": "Imtihon",
+		"pill": "Yakunlandi",
+		"eyebrow": "IMTIHON YAKUNLANDI",
+		"headline": "Rahmat.",
+		"headlineEm": "Javoblaringiz saqlandi.",
+		"subtitle": "Natijangiz quyida ko'rsatilgan. Og'zaki javoblarni o'qituvchi baholaydi — ular baholangach ball shu sahifada o'zi yangilanadi.",
+		"close": "Yopish",
+		"scoreLabel": "Sizning natijangiz",
+		"pending": "{n} ta javobni o'qituvchi hali baholayotgan — yakuniy ball o'zgarishi mumkin.",
+		"final": "Yakuniy natija.",
+		"noTicket": "Sizga bilet berilmagan edi, natija yo'q.",
+		"loadFailed": "Natijani yuklab bo'lmadi. Sahifani yangilang."
 	}
 }

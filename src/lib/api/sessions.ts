@@ -60,6 +60,8 @@ export interface ApiMyState {
 	sessionId: string;
 	session: { status: SessionStatus; startedAt: string | null; endedAt: string | null };
 	answers: ApiMyAnswer[];
+	/** Final score, present only once the session is finished. `pending` answers are not graded yet. */
+	result: { earned: number; max: number; pending: number; total: number } | null;
 }
 
 export interface JoinResponse {

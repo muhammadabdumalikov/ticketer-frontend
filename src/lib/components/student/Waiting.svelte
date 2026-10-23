@@ -27,6 +27,10 @@
 		sock.on('session:start', () => {
 			onStarted();
 		});
+		// The exam can be ended before this student ever got a ticket.
+		sock.on('session:end', () => {
+			onStarted();
+		});
 		// Fallback: if the session:start broadcast is ever missed (socket drop,
 		// reconnect, late join), poll our own state so the page still flips to the
 		// ticket on its own — this is the "auto-refresh" the UI promises.

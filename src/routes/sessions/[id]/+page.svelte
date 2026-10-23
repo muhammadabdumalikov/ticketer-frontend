@@ -130,11 +130,17 @@
 		return () => clearInterval(t);
 	});
 
+	// start/end return the bare session row — keep the ticket info (subject and
+	// ticket names) the page loaded earlier, or the header falls back to "…".
+	function withTicket(updated: ApiSession): ApiSession {
+		return { ...updated, ticket: updated.ticket ?? session?.ticket };
+	}
+
 	async function start() {
 		busy = true;
 		try {
 			const updated = await sessionsApi.start(id);
-			session = updated;
+			session = withTicket(updated);
 		} catch (err) {
 			alert(`${get(_)('session.startFailed')}: ${(err as Error).message}`);
 		} finally {
@@ -147,7 +153,7 @@
 		busy = true;
 		try {
 			const updated = await sessionsApi.end(id);
-			session = updated;
+			session = withTicket(updated);
 		} catch (err) {
 			alert(`${get(_)('session.endFailed')}: ${(err as Error).message}`);
 		} finally {
@@ -403,6 +409,18 @@
 								<div class="s">{$_('session.ofQuestions', { values: { n: ticket.questions.length } })}</div>
 							</div>
 						</div>
+
+						{#if session?.status === 'scheduled'}
+							<div class="sess-hint" style="justify-content: space-between; gap: 16px;">
+								<span style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+									<Icon name="copy" />
+									<span style="overflow-wrap: anywhere;">{copyLink()}</span>
+								</span>
+								<button class="copy-btn" onclick={copyJoinLink}>
+									{copied ? $_('session.copied') : $_('session.copyLink')}
+								</button>
+							</div>
+						{/if}
 
 						{#if session?.status === 'live' && roster.length > 0}
 							<div class="sess-hint">
